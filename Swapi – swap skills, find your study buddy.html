@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swapi – swap skills, find your study buddy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#efeaff;--surface:#fff;--ink:#1d1640;--mute:#6c64a0;--line:#d9d0f7;--ghost:#e1d9fb;--gold:#f5b800;--pink:#ff5d73;--mint:#0fb58a;--vio:#7a5cff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15112e;--surface:#241c52;--ink:#f6f2ff;--mute:#a79fd6;--line:#3a3080;--ghost:#1e1745;--gold:#ffd23f;--mint:#38e3b0}}
+:root[data-theme="dark"]{--bg:#15112e;--surface:#241c52;--ink:#f6f2ff;--mute:#a79fd6;--line:#3a3080;--ghost:#1e1745;--gold:#ffd23f;--mint:#38e3b0}
+*{box-sizing:border-box;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.45 Figtree,system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,.disp{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;letter-spacing:-.02em}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+.ghost{position:fixed;inset:auto 0 8% 0;text-align:center;font:800 min(34vw,360px)/1 'Bricolage Grotesque',sans-serif;color:var(--ghost);pointer-events:none;z-index:0;letter-spacing:-.06em}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:16px}
+.hud{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 0 14px}
+.logo{font-size:30px;color:var(--vio)}
+.logo i{color:var(--pink);font-style:normal}
+.xp{flex:1;min-width:150px}
+.xp b{font-size:13px}.bar{height:12px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:3px}
+.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--gold));transition:width .6s}
+.pill{display:inline-flex;gap:6px;align-items:center;padding:4px 12px;border-radius:99px;font-weight:600;font-size:14px;background:var(--surface);border:2px solid var(--line)}
+/* onboarding */
+.onb{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;padding:20px 0}
+@media(max-width:760px){.onb{grid-template-columns:1fr}}
+.onb h1{font-size:clamp(38px,6vw,64px);line-height:1}
+.onb p.lead{color:var(--mute);margin:12px 0 18px;max-width:42ch}
+form{display:grid;gap:12px}
+label.f{display:grid;gap:4px;font-weight:600;font-size:14px}
+select,input[type=text]{padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--surface);width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{border:0;border-radius:16px;padding:14px 22px;font-weight:800;cursor:pointer;background:var(--vio);color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.28);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+.btn.alt{background:var(--surface);color:var(--ink);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.up{cursor:pointer;text-align:center;padding:12px;border:2px dashed var(--line);border-radius:14px;font-weight:600;color:var(--mute)}
+.up input{display:none}.up.ok{border-color:var(--gold);color:var(--gold)}
+.prev{background:var(--surface);border:2px solid var(--line);border-radius:28px;padding:22px;text-align:center}
+.prev svg{width:min(240px,60vw);animation:bob 1s steps(1) infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.prev h2{font-size:28px;margin-top:6px}
+.tag{display:inline-block;padding:4px 14px;border-radius:99px;font-weight:800;font-size:14px;color:#1d1640}
+/* game */
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs button{flex:1;padding:11px;border-radius:14px;border:2px solid var(--line);background:var(--surface);font-weight:800;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.trail{display:flex;gap:6px;justify-content:center;margin:6px 0 14px;flex-wrap:wrap}
+.trail i{width:22px;height:6px;border-radius:9px;background:var(--line)}.trail i.on{background:var(--pink)}.trail i.done{background:var(--mint)}
+.deck{position:relative;height:min(560px,calc(100vh - 290px));min-height:440px;max-width:380px;margin:0 auto}
+.card{position:absolute;inset:0;background:var(--surface);border:2px solid var(--line);border-radius:28px;overflow:hidden;display:flex;flex-direction:column;touch-action:pan-y;user-select:none;transition:transform .3s,opacity .3s;box-shadow:0 14px 30px rgba(20,10,60,.25)}
+.card .art{flex:1;display:grid;place-items:center;position:relative;min-height:0}
+.card .art svg{height:88%;max-width:90%}
+.card .info{padding:14px 18px 16px}
+.nm{font-size:26px;display:flex;align-items:center;gap:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{font-size:13px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
+.pips{display:flex;gap:4px;align-items:center;font-size:13px;color:var(--mute)}.pips i{width:16px;height:8px;border-radius:5px;background:var(--line)}.pips i.on{background:var(--gold)}
+.syn{position:absolute;top:12px;right:12px;background:var(--ink);color:var(--bg);border-radius:99px;padding:5px 12px;font-weight:800;font-size:14px}
+.stamp{position:absolute;top:40px;font:800 34px 'Bricolage Grotesque';border:5px solid;padding:0 12px;border-radius:12px;opacity:0;transform:rotate(-12deg)}
+.s-yes{left:18px;color:var(--mint)}.s-no{right:18px;color:var(--pink);transform:rotate(12deg)}
+.acts{display:flex;justify-content:center;gap:22px;margin-top:20px}
+.acts button{width:70px;height:70px;border-radius:50%;border:0;cursor:pointer;font:800 15px 'Bricolage Grotesque';color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.28)}
+.acts button:active{transform:translateY(4px);box-shadow:none}
+.empty{text-align:center;padding:60px 10px;color:var(--mute)}
+.list{display:grid;gap:12px}
+.item{display:flex;gap:14px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px}
+.item svg{width:72px;flex:none}.item .grow{flex:1;min-width:0}
+.q{display:flex;align-items:center;gap:12px;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px}
+.q .ck{width:30px;height:30px;border-radius:50%;border:3px solid var(--line);display:grid;place-items:center;flex:none;font-weight:800}
+.q.done .ck{background:var(--mint);border-color:var(--mint);color:#fff}
+.modal{position:fixed;inset:0;background:rgba(10,5,40,.8);display:grid;place-items:center;z-index:50;padding:20px;text-align:center}
+.modal .box{background:var(--surface);border-radius:30px;padding:26px;max-width:420px;width:100%;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.modal h2{font-size:44px;color:var(--pink);line-height:1}
+.pair{display:flex;justify-content:center;align-items:center;margin:10px 0}.pair svg{width:130px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 20px;border-radius:99px;font-weight:800;z-index:60;animation:tst 1.8s forwards}
+@keyframes tst{0%{opacity:0;transform:translate(-50%,20px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+.cf{position:fixed;top:-12px;width:10px;height:14px;z-index:70;animation:fall 2.2s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="ghost" aria-hidden="true">swapi</div>
+<div class="wrap">
+ <header class="hud">
+  <div class="logo disp">swap<i>i</i></div>
+  <div class="xp" id="xpbox" hidden><b id="lvl"></b><div class="bar"><span id="xpb"></span></div></div>
+  <span class="pill" id="streak" hidden></span>
+ </header>
+
+ <section class="onb" id="onb">
+  <div>
+   <h1>Swap skills.<br>Find your study buddy.</h1>
+   <p class="lead">Pick what you study and what you love. Swapi hands you a mascot, a tag, and buddies to swipe. Only your name is required.</p>
+   <form id="form">
+    <label class="f">Your name<input type="text" id="name" maxlength="18" placeholder="e.g. Alex" required autocomplete="off"></label>
+    <div class="row">
+     <label class="f">Skill to swap<select id="skill"></select></label>
+     <label class="f">Your level<select id="level"></select></label>
+    </div>
+    <div class="row">
+     <label class="f">Hobby<select id="hobby"></select></label>
+     <label class="f">Confidence<select id="conf"></select></label>
+    </div>
+    <label class="up" id="upl">Add a certificate for a gold star and 100 XP<input type="file" id="cert" accept="image/*,.pdf"></label>
+    <button class="btn" type="submit">Start swiping</button>
+   </form>
+  </div>
+  <div class="prev" id="prev"></div>
+ </section>
+
+ <main id="game" hidden>
+  <div class="tabs" role="tablist">
+   <button role="tab" data-t="deck" aria-selected="true">Swipe</button>
+   <button role="tab" data-t="squad" aria-selected="false">Squad <span id="sc"></span></button>
+   <button role="tab" data-t="quests" aria-selected="false">Quests</button>
+  </div>
+  <div id="v-deck"><div class="trail" id="trail"></div><div class="deck" id="deck"></div>
+   <div class="acts"><button style="background:var(--pink)" id="no" aria-label="Skip buddy">Skip</button><button style="background:var(--mint)" id="yes" aria-label="Swap with buddy">Swap</button></div></div>
+  <div id="v-squad" hidden><div class="list" id="squad"></div></div>
+  <div id="v-quests" hidden>
+   <div id="quests"></div>
+   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><label class="btn alt up" style="padding:12px 18px;border-style:solid">Upload certificate<input type="file" id="cert2" accept="image/*,.pdf"></label><button class="btn alt" id="edit">Edit profile</button><button class="btn alt" id="reset">Reset game</button></div>
+  </div>
+ </main>
+</div>
+<div id="modal" class="modal" hidden></div>
+
+<script>
+const SK={maths:["Maths","Calcufox","fox"],coding:["Coding","Bytebat","bat"],science:["Science","Atomole","mole"],lang:["Languages","Polyglotto","parrot"],history:["History","Chronowl","owl"],art:["Art & Design","Palettail","cham"]};
+const HB={gaming:["Gaming","#ff5d73","Quest Seeker"],music:["Music","#9b82ff","Beat Keeper"],sport:["Sport","#ff9a3d","Team Spark"],read:["Reading","#35d0a5","Page Turner"],cook:["Cooking","#ffd23f","Snack Boss"],film:["Film","#4fc3ff","Plot Hunter"]};
+const LV=["Beginner","Intermediate","Advanced"],CF=["Just winging it","Shaky","Okay","Solid","Teach-the-class"];
+const NAMES=["Mira","Jonas","Priya","Leo","Zainab","Kofi","Ana","Tomás","Hana","Sam","Ivy","Dev","Noor","Finn"];
+const QS={maths:"Solve one tricky problem each, then swap methods.",coding:"Debug each other's last bug on a shared screen.",science:"Explain one concept using only a kitchen analogy.",lang:"Hold a 5-minute chat in the language you share.",history:"Argue opposite sides of one event for 5 minutes.",art:"Swap sketches and give one improvement each."};
+const $=s=>document.querySelector(s),pick=a=>a[Math.random()*a.length|0],day=()=>new Date().toDateString();
+const fill=(el,o,d)=>el.innerHTML=Object.entries(o).map(([k,v])=>`<option value="${k}">${Array.isArray(v)?v[0]:v}</option>`).join("");
+fill($("#skill"),SK);fill($("#hobby"),HB);
+$("#level").innerHTML=LV.map((l,i)=>`<option value="${i}">${l}</option>`).join("");
+$("#conf").innerHTML=CF.map((l,i)=>`<option value="${i+1}"${i==2?" selected":""}>${l}</option>`).join("");
+
+let st={user:null,xp:0,streak:0,last:"",day:day(),swipes:0,mt:0,squad:[],seen:[]},pool=[];
+try{Object.assign(st,JSON.parse(localStorage.getItem("swapi")||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem("swapi",JSON.stringify(st))}catch(e){}};
+
+const mix=(c,t)=>{const n=parseInt(c.slice(1),16);return"#"+[16,8,0].map(s=>Math.round(((n>>s)&255)*(1-t)+255*t).toString(16).padStart(2,"0")).join("")};
+function pix(g,pal,w,h,label,extra=""){let r="";g.forEach((row,y)=>{for(let x=0;x<w;){const ch=row[x];if(ch=="."||!pal[ch]){x++;continue}let e=x;while(row[e+1]==ch)e++;r+=`<rect x="${x}" y="${y}" width="${e-x+1}" height="1" fill="${pal[ch]}"/>`;x=e+1}});return`<svg viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" role="img" aria-label="${label}" ${extra}>${r}</svg>`}
+const TOP={
+fox:["..D..........D..",".DBD........DBD.",".DBBD......DBBD.",".DBBBDDDDDDBBBD.","..DBBBBBBBBBBD.."],
+bat:[".D............D.",".DD..........DD.",".DBD........DBD.",".DBBDDDDDDDDBBD.","..DBBBBBBBBBBD.."],
+mole:["................","..DDD......DDD..",".DBBBD....DBBBD.",".DBBBDDDDDDBBBD.","..DBBBBBBBBBBD.."],
+parrot:["......R.R.R.....","......RRRRR.....","......DDDD......".slice(0,16).padEnd(16,"."),"..DDDDDDDDDDDD..","..DBBBBBBBBBBD.."],
+owl:["..D..........D..","..DD........DD..","..DBDDDDDDDDBD..",".DBBBBBBBBBBBBD.","..DBBBBBBBBBBD.."],
+cham:[".....D.D.D......","....DYDYDYD.....","...DDDDDDDDD....","..DBBBBBBBBBBD..","..DBBBBBBBBBBD.."]};
+const BODY=["..DBBBBBBBBBBD..",".DBBBBBBBBBBBBD.",".DBBWWBBBBWWBBD.",".DBBWKBBBBWKBBD.",".DBBBBBBBBBBBBD.",".DBPPBBDDBBPPBD.",".DBBBBLLLLBBBBD.","..DBBBLLLLLLBBD.","..DBBBBBBBBBBD..","...DDBBBBBBDD...","....DDDDDDDD...."];
+const PATCH={bat:[[10,7,"W"],[10,8,"W"]],mole:[[8,7,"P"],[8,8,"P"]],parrot:[[8,7,"O"],[8,8,"O"],[9,7,"O"],[9,8,"O"],[10,7,"O"],[10,8,"O"]],owl:[[5,4,"W"],[5,5,"W"],[5,10,"W"],[5,11,"W"]],cham:[[11,15,"D"],[12,15,"B"],[13,15,"B"],[13,14,"B"],[14,15,"D"],[14,14,"D"]]};
+function mascot(t,c,l){
+ const g=[...TOP[t],...BODY.slice(1)].map(r=>r.split(""));
+ (PATCH[t]||[]).forEach(([y,x,ch])=>g[y][x]=ch);
+ if(l>0)for(let x=2;x<14;x++)if(g[6][x]=="B")g[6][x]=l==2?"Y":"R";
+ if(l==2)[6,7,8,9].forEach(x=>{if(g[4][x]=="B")g[4][x]="Y"});
+ return pix(g.map(r=>r.join("")),{D:"#1d1640",B:c,L:mix(c,.5),W:"#fff",K:"#1d1640",P:"#ff8aa0",O:"#ff9a3d",R:"#ff5d73",Y:"#ffd23f"},16,16,t+" mascot")}
+const star=pix(["...Y...","...Y...","..YYY..","YYYYYYY",".YYYYY.","..YYY..",".YY.YY."],{Y:"#ffd23f"},7,7,"Certificate uploaded",'width="22" height="22" style="filter:drop-shadow(0 0 0 #a87800) drop-shadow(1px 1px 0 #a87800);flex:none"');
+const me=()=>st.user;
+const lvlOf=x=>Math.floor(x/100)+1;
+function toast(t){const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),1850)}
+function gain(n,why){const a=lvlOf(st.xp);st.xp+=n;save();hud();toast(`+${n} XP ${why||""}`);if(lvlOf(st.xp)>a)setTimeout(()=>toast(`Level ${lvlOf(st.xp)} reached!`),1900)}
+function hud(){if(!me())return;$("#xpbox").hidden=$("#streak").hidden=false;$("#lvl").textContent=`Level ${lvlOf(st.xp)} · ${st.xp%100}/100 XP`;$("#xpb").style.width=st.xp%100+"%";$("#streak").textContent=`🔥 ${st.streak}-day streak`}
+
+/* onboarding */
+let cert=null;
+function preview(){const s=$("#skill").value,h=$("#hobby").value,l=+$("#level").value;
+ $("#prev").innerHTML=`${mascot(SK[s][2],HB[h][1],l)}<h2>${$("#name").value||"Your name"}${cert?" "+star:""}</h2><p style="color:var(--mute)">Meet your mascot: <b>${SK[s][1]}</b></p><span class="tag" style="background:${HB[h][1]}">${HB[h][2]}</span>`}
+["skill","hobby","level","name"].forEach(i=>$("#"+i).addEventListener("input",preview));
+function uploadHandler(e,after){const f=e.target.files[0];if(!f)return;const first=!cert;cert=f.name;$("#upl").classList.add("ok");$("#upl").firstChild.textContent="Certificate added: "+f.name;preview();after&&after(first)}
+$("#cert").onchange=e=>uploadHandler(e);
+$("#cert2").onchange=e=>uploadHandler(e,first=>{if(!me().cert){me().cert=cert;gain(100,"certificate");render()}else toast("Certificate already added")});
+$("#form").onsubmit=e=>{e.preventDefault();const n=$("#name").value.trim();if(!n)return;
+ const first=!me();st.user={name:n,skill:$("#skill").value,level:+$("#level").value,hobby:$("#hobby").value,conf:+$("#conf").value,cert:cert};
+ if(cert&&first)st.xp+=100;st.seen=[];st.squad=[];save();start()};
+$("#edit").onclick=()=>{const u=me();$("#name").value=u.name;$("#skill").value=u.skill;$("#level").value=u.level;$("#hobby").value=u.hobby;$("#conf").value=u.conf;cert=u.cert;$("#onb").hidden=false;$("#game").hidden=true;preview();scrollTo(0,0)};
+$("#reset").onclick=()=>{if(confirm("Reset XP, squad and profile?")){try{localStorage.removeItem("swapi")}catch(e){}location.reload()}};
+
+/* buddies */
+function gen(){const u=me();return [...NAMES].sort(()=>Math.random()-.5).slice(0,9).map(n=>{const b={name:n,skill:Math.random()<.5?u.skill:pick(Object.keys(SK)),level:Math.random()*3|0,hobby:Math.random()<.3?u.hobby:pick(Object.keys(HB)),conf:1+Math.random()*5|0,cert:Math.random()<.4};
+ let s=30+(b.skill==u.skill?30:0)+[16,8,2][Math.abs(b.level-u.level)]+(b.hobby==u.hobby?14:0)+(Math.abs(b.conf-u.conf)<2?10:0)+(Math.random()*6|0);b.syn=Math.min(99,s);return b}).sort((a,b)=>b.syn-a.syn)}
+function cardHtml(b){const h=HB[b.hobby];return `<div class="art" style="background:${h[1]}33"><span class="syn">${b.syn}% sync</span><span class="stamp s-yes">SWAP</span><span class="stamp s-no">SKIP</span>${mascot(SK[b.skill][2],h[1],b.level)}</div>
+ <div class="info"><h2 class="nm">${b.name}${b.cert?star:""}</h2><span class="tag" style="background:${h[1]}">${h[2]}</span>
+ <div class="chips"><span class="chip">${SK[b.skill][1]} · ${SK[b.skill][0]}</span><span class="chip">${LV[b.level]}</span><span class="chip">${h[0]}</span></div>
+ <div class="pips">${[1,2,3,4,5].map(i=>`<i class="${i<=b.conf?"on":""}"></i>`).join("")} ${CF[b.conf-1]}</div></div>`}
+
+/* deck */
+let flying=false;
+function renderDeck(){
+ const left=pool.filter(b=>!st.seen.includes(b.name)),d=$("#deck");
+ $("#trail").innerHTML=pool.map(b=>`<i class="${st.seen.includes(b.name)?"done":b==left[0]?"on":""}"></i>`).join("");
+ if(!left.length){d.innerHTML=`<div class="empty"><h2 class="disp">Deck cleared!</h2><p>Come back for fresh buddies.</p><br><button class="btn" id="more">Deal new buddies</button></div>`;$("#more").onclick=()=>{pool=gen();st.seen=[];save();renderDeck()};return}
+ d.innerHTML="";left.slice(0,3).reverse().forEach((b,i,a)=>{const top=i==a.length-1,c=document.createElement("div");c.className="card";c.innerHTML=cardHtml(b);
+  const k=a.length-1-i;c.style.transform=`translateY(${k*12}px) scale(${1-k*.04})`;d.append(c);if(top){c._b=b;drag(c)}})}
+function drag(el){let x0,dx=0,on=false;const y=el.querySelector(".s-yes"),n=el.querySelector(".s-no");
+ el.onpointerdown=e=>{if(flying)return;on=true;x0=e.clientX;el.setPointerCapture(e.pointerId);el.style.transition="none"};
+ el.onpointermove=e=>{if(!on)return;dx=e.clientX-x0;el.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;y.style.opacity=Math.max(0,dx/90);n.style.opacity=Math.max(0,-dx/90)};
+ el.onpointerup=()=>{if(!on)return;on=false;el.style.transition="";if(Math.abs(dx)>100)decide(dx>0);else{el.style.transform="";y.style.opacity=n.style.opacity=0}dx=0}}
+function decide(yes){const el=$("#deck .card:last-child");if(flying||!el||!el._b)return;flying=true;const b=el._b;
+ el.style.transform=`translateX(${yes?600:-600}px) rotate(${yes?30:-30}deg)`;el.style.opacity=0;
+ setTimeout(()=>{flying=false;st.seen.push(b.name);if(st.day!=day()){st.day=day();st.swipes=0;st.mt=0}st.swipes++;gain(5);
+  if(yes&&Math.random()<.25+b.syn/140){st.squad.push(b);st.mt++;save();gain(50,"match!");matchModal(b)}else save();
+  renderDeck();render()},280)}
+$("#yes").onclick=()=>decide(true);$("#no").onclick=()=>decide(false);
+addEventListener("keydown",e=>{if($("#v-deck").hidden||$("#modal").hidden==false)return;if(e.key=="ArrowRight")decide(true);if(e.key=="ArrowLeft")decide(false)});
+
+function matchModal(b){const m=$("#modal"),u=me();m.hidden=false;
+ m.innerHTML=`<div class="box" role="dialog" aria-label="New match"><h2>It's a swap!</h2><div class="pair">${mascot(SK[u.skill][2],HB[u.hobby][1],u.level)}${mascot(SK[b.skill][2],HB[b.hobby][1],b.level)}</div><p><b>${u.name}</b> and <b>${b.name}</b> are ${b.syn}% in sync.</p><p style="color:var(--mute);margin:8px 0 16px">Open your Squad to run a study quest together.</p><button class="btn" id="ok">Keep swiping</button></div>`;
+ $("#ok").focus();$("#ok").onclick=()=>m.hidden=true;
+ for(let i=0;i<60;i++){const c=document.createElement("i");c.className="cf";c.style.left=Math.random()*100+"vw";c.style.background=pick(["#ff5d73","#ffd23f","#38e3b0","#9b82ff"]);c.style.animationDelay=Math.random()*.6+"s";document.body.append(c);setTimeout(()=>c.remove(),3000)}}
+
+/* squad + quests */
+function render(){
+ $("#sc").textContent=st.squad.length?`(${st.squad.length})`:"";
+ $("#squad").innerHTML=st.squad.length?st.squad.map((b,i)=>`<div class="item">${mascot(SK[b.skill][2],HB[b.hobby][1],b.level)}<div class="grow"><h3 class="nm" style="font-size:20px">${b.name}${b.cert?star:""}</h3><span class="tag" style="background:${HB[b.hobby][1]}">${HB[b.hobby][2]}</span><p style="font-size:14px;color:var(--mute);margin-top:6px">${b.done?"Quest complete. Nice teamwork.":QS[b.skill]}</p></div>${b.done?"":`<button class="btn" data-q="${i}">Done +20</button>`}</div>`).join(""):`<div class="empty"><h2 class="disp">No squad yet</h2><p>Swap right on a buddy to try for a match.</p></div>`;
+ document.querySelectorAll("[data-q]").forEach(x=>x.onclick=()=>{st.squad[x.dataset.q].done=1;gain(20,"quest");render()});
+ const q=[["Swipe 5 buddies",st.swipes>=5,`${Math.min(st.swipes,5)}/5`],["Make a match",st.mt>=1,`${Math.min(st.mt,1)}/1`],["Earn your gold star (certificate)",!!me().cert,me().cert?"done":"upload below"]];
+ $("#quests").innerHTML=q.map(x=>`<div class="q ${x[1]?"done":""}"><span class="ck">${x[1]?"✓":""}</span><div class="grow" style="flex:1"><b>${x[0]}</b></div><span class="pill">${x[2]}</span></div>`).join("")}
+
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x==b));["deck","squad","quests"].forEach(t=>$("#v-"+t).hidden=t!=b.dataset.t);render()});
+
+function start(){
+ const t=day();if(st.last!=t){const y=new Date(Date.now()-864e5).toDateString();st.streak=st.last==y?st.streak+1:1;st.last=t;st.swipes=0;st.mt=0;st.day=t}
+ save();$("#onb").hidden=true;$("#game").hidden=false;hud();if(!pool.length)pool=gen();renderDeck();render()}
+preview();if(me()){cert=me().cert;start()}
+</script>
+</body>
+</html>
