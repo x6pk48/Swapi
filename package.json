@@ -1,0 +1,9 @@
+{
+  "name": "swapi",
+  "version": "1.0.0",
+  "description": "Swap skills, find your study buddy. Node.js + SQLite backend with a single-file frontend.",
+  "main": "server.js",
+  "scripts": { "start": "node --no-warnings server.js" },
+  "engines": { "node": ">=22.13" },
+  "license": "MIT"
+}
