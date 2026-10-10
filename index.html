@@ -254,13 +254,22 @@ button,.card,.act{-webkit-tap-highlight-color:transparent;touch-action:manipulat
  .act{width:54px;height:54px}.act.bo{width:44px;height:44px}
 }
 @keyframes su{from{transform:translateY(40px);opacity:0}}
+/* growth / journey */
+.jr{display:grid;gap:14px}.jr .sbox h4{margin-bottom:2px}.jr .q{margin-bottom:0}
+.jhead{display:flex;gap:14px;align-items:center}.jhead svg{width:72px;flex:none;animation:bob 1s steps(1) infinite}
+.jgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px}
+.stat{border:2px solid transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--grad) border-box;border-radius:16px;padding:12px;text-align:center}
+.stat b{display:block;font:800 26px 'Bricolage Grotesque',sans-serif;color:var(--lv)}.stat small{color:var(--mute);font-size:12px}
+.sk{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.sk:last-child{border-bottom:0}
+.jrn{padding:10px 0;border-bottom:1px solid var(--line);display:grid;gap:2px}.jrn:last-child{border:0}
+.gl{display:flex;gap:6px;flex-wrap:wrap}.gl .opt{padding:5px 12px;font-size:13px}
 @media(max-width:700px){
  body.m-deck .stack{bottom:calc(env(safe-area-inset-bottom,0px) + 160px)}
  body.m-deck .acts{bottom:calc(env(safe-area-inset-bottom,0px) + 80px);gap:26px}
  .act{width:68px;height:68px}.act.bo{width:54px;height:54px}
  .wrap{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}
  #mnu{display:none!important}
- .bnav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:45;background:var(--bg);border-top:1px solid var(--line);padding:4px 6px calc(env(safe-area-inset-bottom,0px) + 4px)}
+ .bnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:45;background:var(--bg);border-top:1px solid var(--line);padding:4px 6px calc(env(safe-area-inset-bottom,0px) + 4px)}
  .bnav button{background:none;border:0;display:grid;justify-items:center;gap:1px;padding:6px 0;font-size:11px;font-weight:600;color:var(--mute);cursor:pointer;position:relative;min-height:52px}
  .bnav .i{font-size:22px;line-height:1}
  .bnav button[aria-current=page]{color:var(--ink)}
@@ -304,12 +313,14 @@ button,.card,.act{-webkit-tap-highlight-color:transparent;touch-action:manipulat
   <div class="tabs" role="tablist">
    <button role="tab" data-t="deck" aria-selected="true">Swipe</button>
    <button role="tab" data-t="squad" aria-selected="false">Squad <span id="sc"></span></button>
+   <button role="tab" data-t="journey" aria-selected="false">Journey</button>
    <button role="tab" data-t="quests" aria-selected="false">Quests</button>
   </div>
   <div id="v-deck"><div style="text-align:center;margin-bottom:10px"><span class="pill" id="cnt"></span></div><div class="trail" id="trail"></div><div class="stack" id="stack" aria-label="Buddy cards"></div>
    <div class="acts"><button class="act no" id="no" aria-label="Skip buddy">✕</button><button class="act bo" id="bo" aria-label="Boost: guaranteed match, once a day">⚡</button><button class="act yes" id="yes" aria-label="Swap with buddy">♥</button></div>
    <p class="hint">Drag right to swap, left to skip · ← → keys · ⚡ boost once a day</p></div>
   <div id="v-squad" hidden><div id="meets"></div><div class="list" id="squad"></div><div id="sess"></div></div>
+  <div id="v-journey" hidden><div id="journey" class="jr"></div></div>
   <div id="v-quests" hidden>
    <div id="quests"></div>
    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn alt" id="edit">Open profile</button><button class="btn alt" id="reset">Reset game</button></div>
@@ -341,7 +352,7 @@ const esc=v=>String(v).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",
 const fmtDT=d=>new Date(d).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 const $=s=>document.querySelector(s),pick=a=>a[Math.random()*a.length|0],day=()=>new Date().toDateString();
 const fill=(el,o,d)=>el.innerHTML=Object.entries(o).map(([k,v])=>`<option value="${k}">${Array.isArray(v)?v[0]:v}</option>`).join("");
-let st={user:null,xp:0,streak:0,last:"",day:day(),swipes:0,mt:0,squad:[],seen:[],chats:{},meetings:[],notes:{},joined:0,custom:[],sessions:[],ratings:[]},pool=[];
+let st={user:null,xp:0,streak:0,last:"",day:day(),swipes:0,mt:0,squad:[],seen:[],chats:{},meetings:[],notes:{},joined:0,custom:[],sessions:[],ratings:[],journal:[],skills:{},ms:[]},pool=[];
 try{Object.assign(st,JSON.parse(localStorage.getItem("swapi")||"{}"))}catch(e){}
 const save=()=>{try{localStorage.setItem("swapi",JSON.stringify(st))}catch(e){}};
 const ALL=Object.entries(SPEC).flatMap(([k,a])=>a.map(t=>({t,k})));(st.custom||[]).forEach(x=>ALL.push(x));let recs={};
@@ -372,7 +383,7 @@ function hud(){if(!me())return;const u=me();$("#prof").hidden=false;$("#mnu").hi
 
 /* onboarding wizard */
 let cert=null;const STEPS=6;
-let w={i:0,name:"",pr:"",teach:[],want:[],level:1,conf:3,hobby:"gaming",time:["Morning"]};
+let w={i:0,name:"",pr:"",goal:"",teach:[],want:[],level:1,conf:3,hobby:"gaming",time:["Morning"]};
 function chipsRow(host,items,isSel,onTap,cls,after){const draw=()=>{host.innerHTML=items.map(([v,l,sub])=>`<button type="button" class="opt ${cls||""}" aria-pressed="${!!isSel(v)}" data-v="${esc(v)}">${esc(l)}${sub?`<small>${esc(sub)}</small>`:""}</button>`).join("");host.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{onTap(b.dataset.v);draw();after&&after()})};draw()}
 function picker(host,list,o){let q="",cat="all",shown=[];
  host.innerHTML=`<div class="pk"><div class="sel" aria-live="polite"></div><input type="search" class="pq" placeholder="${esc(o.ph)}" aria-label="Search skills and topics" autocomplete="off" enterkeyhint="search"><div class="cats"></div><div class="res"></div></div>`;
@@ -395,7 +406,7 @@ function picker(host,list,o){let q="",cat="all",shown=[];
  S(".pq").onkeydown=e=>{if(e.key=="Enter"){e.preventDefault();const f=S(".res .opt");f&&f.click()}};
  draw()}
 function preview(){const t=w.teach[0],h=HB[w.hobby],n=w.name.replace(/[<>&"]/g,"").trim(),pt=$(".prev .portal");if(pt)pt.style.display=t?"none":"";
- $("#pv").innerHTML=`${t?`<div class="pvm">${mascot(SK[t.k][2],h[1],w.level)}</div>`:""}<h2>${n||"Your name"}${cert?star:""}${w.pr?` <span class="pr2">(${esc(w.pr)})</span>`:""}</h2><p style="color:var(--mute)">${t?`Your mascot: <b>${SK[t.k][1]}</b>`:"Pick a skill to meet your mascot"}</p><span class="tag" style="background:${h[1]}">${h[2]}</span>${w.teach.length?`<p class="pvl">Teaching: ${w.teach.map(x=>esc(x.t)).join(", ")}</p>`:""}${w.want.length?`<p class="pvl">Learning: ${w.want.map(x=>esc(x.t)).join(", ")}</p>`:""}`}
+ $("#pv").innerHTML=`${t?`<div class="pvm">${mascot(SK[t.k][2],h[1],w.level)}</div>`:""}<h2>${n||"Your name"}${cert?star:""}${w.pr?` <span class="pr2">(${esc(w.pr)})</span>`:""}</h2><p style="color:var(--mute)">${t?`Your mascot: <b>${SK[t.k][1]}</b>`:"Pick a skill to meet your mascot"}</p><span class="tag" style="background:${h[1]}">${h[2]}</span>${w.goal.trim()?`<p class="pvl">Becoming: <b>${esc(w.goal.trim())}</b></p>`:""}${w.teach.length?`<p class="pvl">Teaching: ${w.teach.map(x=>esc(x.t)).join(", ")}</p>`:""}${w.want.length?`<p class="pvl">Learning: ${w.want.map(x=>esc(x.t)).join(", ")}</p>`:""}`}
 function drawConf(){$("#cfs").innerHTML=[1,2,3,4,5].map(i=>`<button type="button" class="sqb${i<=w.conf?" on":""}" data-c="${i}" aria-label="Confidence ${i} of 5"></button>`).join("")+`<span style="color:var(--mute);font-size:14px;margin-left:6px">${CF[w.conf-1]}</span>`;$("#cfs").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{w.conf=+b.dataset.c;drawConf()})}
 function showStep(){document.querySelectorAll(".step").forEach(x=>x.classList.toggle("on",+x.dataset.s==w.i));$("#wzb").style.width=(w.i+1)/STEPS*100+"%";$("#wzs").textContent=`Step ${w.i+1} of ${STEPS}`;$("#wzBack").style.visibility=w.i?"visible":"hidden";$("#wzNext").textContent=w.i==STEPS-1?"Start swiping":"Next";
  if(w.i==STEPS-1)$("#sum").textContent=`${w.name.trim()||"You"}: teaching ${w.teach.map(x=>x.t).join(", ")||"(we'll pick a starter topic)"}, learning ${w.want.map(x=>x.t).join(", ")||"(we'll pick one for you)"}. Add a certificate for a gold star, or jump straight in.`}
@@ -404,7 +415,8 @@ function buildWizard(){
  $("#steps").innerHTML=`
  <div class="step" data-s="0"><h1>Swap skills.<br>Find your study buddy.</h1><p class="lead">A few quick questions and Swapi hands you a mascot, a tag and buddies to swipe.</p>
   <label class="f">What should we call you?<input type="text" id="name" maxlength="18" placeholder="e.g. Alex" autocomplete="off"></label>
-  <div><div class="fl2">Pronouns <small>(optional)</small></div><div class="opts" id="prs"></div></div></div>
+  <div><div class="fl2">Pronouns <small>(optional)</small></div><div class="opts" id="prs"></div></div>
+  <label class="f">Who do you want to become? <small style="color:var(--mute);font-weight:400">(optional, e.g. a confident coder)</small><input type="text" id="goal" maxlength="60" placeholder="Your goal in a few words" autocomplete="off"></label></div>
  <div class="step" data-s="1"><h2 class="q-h">What can you teach?</h2><p class="lead">Search for a skill or a specific topic and tap to select up to 3. Can't find yours? Type it and add it.</p><div id="pkT"></div></div>
  <div class="step" data-s="2"><h2 class="q-h">How good are you at it?</h2><div class="opts" id="lvs"></div><div class="fl2">Confidence</div><div class="conf" id="cfs"></div></div>
  <div class="step" data-s="3"><h2 class="q-h">What do you want to learn?</h2><p class="lead">Pick up to 5 skills or topics.</p><div id="pkW"></div></div>
@@ -419,14 +431,15 @@ function buildWizard(){
  chipsRow($("#tms"),TM.map(t=>[t,t]),v=>w.time.includes(v),v=>{const i=w.time.indexOf(v);i<0?w.time.push(v):w.time.splice(i,1)});
  $("#cert").onchange=e=>{const f=e.target.files[0];if(!f)return;cert=f.name;$("#upl").classList.add("ok");$("#upl").firstChild.textContent="Certificate added: "+f.name;preview()};
  $("#name").oninput=e=>{w.name=e.target.value;preview()};
+ $("#goal").oninput=e=>{w.goal=e.target.value;preview()};
  $("#form").onsubmit=e=>{e.preventDefault();nextStep()};
  $("#wzBack").onclick=()=>{if(w.i>0){w.i--;showStep()}};
  showStep();preview()}
 function finish(){const n=w.name.trim().replace(/[<>&"]/g,"");if(!n){w.i=0;showStep();return}
  const teach=w.teach.length?w.teach.map(x=>({...x})):[{t:"Python",k:"coding"}],want=w.want.length?w.want.map(x=>({...x})):[teach[0].k=="maths"?{t:"Python",k:"coding"}:{t:"Algebra",k:"maths"}];
- const first=!me();st.user={name:n,pr:w.pr,teach,want,skill:teach[0].k,spec:teach[0].t,learn:want[0].k,level:w.level,hobby:w.hobby,conf:w.conf,time:w.time.length?[...w.time]:["Morning"],cert};
+ const first=!me();st.user={name:n,pr:w.pr,teach,want,skill:teach[0].k,spec:teach[0].t,learn:want[0].k,level:w.level,hobby:w.hobby,conf:w.conf,time:w.time.length?[...w.time]:["Morning"],cert,goal:w.goal.trim().replace(/[<>&"]/g,"").slice(0,60)};
  if(cert&&first)st.xp+=100;st.seen=[];st.squad=[];st.chats={};st.meetings=[];save();start()}
-function migrate(u){u.pr=u.pr||"";if(!u.teach)u.teach=[{t:u.spec||SPEC[u.skill][0],k:u.skill}];if(!u.want)u.want=[{t:SPEC[u.learn][0],k:u.learn}];if(!u.time)u.time=["Morning"]}
+function migrate(u){u.pr=u.pr||"";u.goal=u.goal||"";if(!u.teach)u.teach=[{t:u.spec||SPEC[u.skill][0],k:u.skill}];if(!u.want)u.want=[{t:SPEC[u.learn][0],k:u.learn}];if(!u.time)u.time=["Morning"]}
 $("#edit").onclick=()=>openProfile();
 $("#reset").onclick=()=>{if(confirm("Reset XP, squad and profile?")){try{localStorage.removeItem("swapi")}catch(e){}location.reload()}};
 
@@ -481,7 +494,7 @@ function fling(yes,bst){const el=$("#stack .card:last-child");if(flying||!el||!e
  setTimeout(()=>{flying=0;settle(b.name,yes,bst);renderDeck()},430)}
 function boost(){if(boosted())return toast("Boost used today. It resets tomorrow");const t=$("#stack .card:last-child");if(!t||!t._b)return;st.boost=day();save();fling(1,1)}
 $("#yes").onclick=()=>fling(1);$("#no").onclick=()=>fling(0);$("#bo").onclick=boost;
-function settle(n,yes,boost){if(done.has(n))return;done.add(n);const b=pool.find(x=>x.name==n);st.seen.push(n);if(st.day!=day()){st.day=day();st.swipes=0;st.mt=0}st.swipes++;gain(5);
+function settle(n,yes,boost){if(done.has(n))return;done.add(n);const b=pool.find(x=>x.name==n);st.seen.push(n);if(st.day!=day()){st.day=day();st.swipes=0;st.mt=0}st.swipes++;if(st.swipes<=10)gain(2);
  if(yes&&(boost||Math.random()<.25+b.syn/140)){st.squad.push(b);st.chats[n]=[{f:n,t:`Hey ${me().name}! Want to swap ${SK[b.skill][0]} tips?`}];st.mt++;save();gain(50,"match!");matchModal(b)}else save();render()}
 addEventListener("keydown",e=>{if($("#v-deck").hidden||!$("#modal").hidden||!$("#sheet").hidden||!$("#portal").hidden||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key=="ArrowRight")fling(1);if(e.key=="ArrowLeft")fling(0);if(e.key=="ArrowUp")boost()});
 
@@ -504,7 +517,7 @@ function render(){
  document.querySelectorAll("[data-b]").forEach(x=>x.onclick=()=>openSheet(x.dataset.b,"book"));
  document.querySelectorAll("[data-e]").forEach(x=>x.onclick=()=>enter(x.dataset.e));
  document.querySelectorAll("[data-x]").forEach(x=>x.onclick=()=>{const[n,d,h]=x.dataset.x.split("|");st.meetings=st.meetings.filter(m=>!(m.n==n&&m.d==d&&m.h==+h));save();render();toast("Meeting cancelled")});
- const q=[["Swipe 5 buddies",st.swipes>=5,`${Math.min(st.swipes,5)}/5`],["Make a match",st.mt>=1,`${Math.min(st.mt,1)}/1`],["Book a study meeting",st.meetings.length>0,st.meetings.length?"done":"in Squad"],["Join a study room",st.joined>0,st.joined?"done":"in Squad"],["Rate a study session",st.ratings.some(r=>r.by=="me"),st.ratings.some(r=>r.by=="me")?"done":"after a session"],["Earn your gold star (certificate)",!!me().cert,me().cert?"done":"in Profile"]];
+ const q=[["Swipe 5 buddies",st.swipes>=5,`${Math.min(st.swipes,5)}/5`],["Make a match",st.mt>=1,`${Math.min(st.mt,1)}/1`],["Book a study meeting",st.meetings.length>0,st.meetings.length?"done":"in Squad"],["Join a study room",st.joined>0,st.joined?"done":"in Squad"],["Rate a study session",st.ratings.some(r=>r.by=="me"),st.ratings.some(r=>r.by=="me")?"done":"after a session"],["Set who you want to become",!!me().goal,me().goal?"done":"in Journey"],["Reflect on a session",st.journal.length>0,st.journal.length?"done":"after a session"],["Earn your gold star (certificate)",!!me().cert,me().cert?"done":"in Profile"]];
  $("#quests").innerHTML=q.map(x=>`<div class="q ${x[1]?"done":""}"><span class="ck">${x[1]?"✓":""}</span><div class="grow" style="flex:1"><b>${x[0]}</b></div><span class="pill">${x[2]}</span></div>`).join("");renderSess()}
 
 function openSheet(n,tab){sh={n,tab,m:new Date(),sel:null,slot:null};$("#sheet").hidden=false;drawSheet()}
@@ -543,6 +556,7 @@ function openProfile(){const u=me(),el=$("#sheet"),d={teach:u.teach.map(x=>({...
  el.innerHTML=`<div class="box sheet" role="dialog" aria-label="Your profile"><div class="sh-h">${mascot(SK[u.skill][2],HB[u.hobby][1],u.level)}<div style="flex:1"><h3 class="nm" style="font-size:20px">${esc(u.name)}${u.cert?star:""}</h3><span class="tag" style="background:${HB[u.hobby][1]}">${HB[u.hobby][2]}</span> <small style="color:var(--mute)">${SK[u.skill][1]}</small></div><button class="btn alt" id="x" aria-label="Close">✕</button></div>
  <div style="overflow-y:auto;display:grid;gap:12px;padding:4px"><div class="sbox"><h4 class="disp">Your ratings</h4>${rt?`<p><b class="disp" style="font-size:24px;color:var(--lv)">★ ${rt.avg.toFixed(1)}</b> from ${rt.mine||rt.n} session${(rt.mine||rt.n)==1?"":"s"}</p><div class="chips">${rt.tags.slice(0,4).map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>${got.map(r=>`<p class="cm">“${esc(r.text)}” <small style="color:var(--mute)">– ${esc(r.from)}${r.demo?" (demo)":""}</small></p>`).join("")}`:`<p style="color:var(--mute)">No ratings yet. After a study session your buddy rates how useful it was and what they liked, and it is saved here.</p>`}</div>
  <form id="pf" style="display:grid;gap:10px"><label class="f">Name<input type="text" id="pn" maxlength="18" value="${esc(u.name)}" required></label>
+ <label class="f">Who do you want to become?<input type="text" id="pg" maxlength="60" value="${esc(u.goal||"")}" placeholder="e.g. a confident software engineer"></label>
  <label class="f">Pronouns<select id="ppr">${[...PR,""].map(p=>`<option value="${p}"${p==u.pr?" selected":""}>${p||"Prefer not to say"}</option>`).join("")}</select></label>
  <div class="fl2">Skills I can teach</div><div id="pkT2"></div>
  <div class="row"><label class="f">Level<select id="pLv">${LV.map((l,i)=>`<option value="${i}"${i==u.level?" selected":""}>${l}</option>`).join("")}</select></label><label class="f">Confidence<select id="pCf">${CF.map((l,i)=>`<option value="${i+1}"${i+1==u.conf?" selected":""}>${l}</option>`).join("")}</select></label></div>
@@ -556,7 +570,7 @@ function openProfile(){const u=me(),el=$("#sheet"),d={teach:u.teach.map(x=>({...
  $("#x").onclick=()=>el.hidden=true;el.onclick=e=>{if(e.target==el)el.hidden=true};
  $("#pcf").onchange=e=>{const f=e.target.files[0];if(!f||u.cert)return;u.cert=f.name;gain(100,"certificate");hud();render();openProfile()};
  $("#pf").onsubmit=e=>{e.preventDefault();if(!d.teach.length||!d.want.length)return toast("Pick at least one topic to teach and one to learn");
-  Object.assign(u,{name:$("#pn").value.trim().replace(/[<>&"]/g,"")||u.name,pr:$("#ppr").value,teach:d.teach,want:d.want,skill:d.teach[0].k,spec:d.teach[0].t,learn:d.want[0].k,level:+$("#pLv").value,conf:+$("#pCf").value,hobby:$("#pHb").value,time:d.time.length?d.time:["Morning"]});
+  Object.assign(u,{name:$("#pn").value.trim().replace(/[<>&"]/g,"")||u.name,pr:$("#ppr").value,goal:$("#pg").value.trim().replace(/[<>&"]/g,"").slice(0,60),teach:d.teach,want:d.want,skill:d.teach[0].k,spec:d.teach[0].t,learn:d.want[0].k,level:+$("#pLv").value,conf:+$("#pCf").value,hobby:$("#pHb").value,time:d.time.length?d.time:["Morning"]});
   pool=gen();st.seen=[];done.clear();save();renderDeck();hud();render();el.hidden=true;toast("Profile saved. New buddies dealt")}}
 $("#prof").onclick=openProfile;
 
@@ -594,7 +608,7 @@ function room(b){const u=me(),el=$("#portal");let s=0,pt=1500,run=0,mic=1,cam=1,
  $("#cm").onclick=()=>{if(!V){toast("No camera available");return}cam=!cam;V.enabled=cam;$("#cm").textContent="Camera: "+(cam?"on":"off");$("#t1").classList.toggle("off",!cam)};
  el.querySelectorAll("[data-r]").forEach(x=>x.onclick=()=>{react++;const f=document.createElement("span");f.className="fl";f.textContent=x.dataset.r;f.style.left=20+Math.random()*60+"vw";document.body.append(f);setTimeout(()=>f.remove(),1700)});
  $("#lv").onclick=()=>{$("#lv").disabled=true;stopRec(()=>{gone=1;cancelAnimationFrame(raf);ms&&ms.getTracks().forEach(t=>t.stop());ac&&ac.close&&ac.close();stopTr();clearInterval(iv);clearInterval(sp);
-  const notes=$("#nt").value;st.notes[b.name]=notes;st.joined++;const xp=Math.min(60,15+Math.floor(s/30));
+  const notes=$("#nt").value;st.notes[b.name]=notes;st.joined++;const xp=Math.min(90,30+Math.floor(s/20));
   const x={id:Date.now(),buddy:b.name,date:new Date().toISOString(),dur:s,rounds,react,recorded:!!blob,rated:false};x.summary=summarise(x,b,u,notes,utts);st.sessions.unshift(x);
   if(blob)recs[x.id]={url:URL.createObjectURL(blob),ext:/mp4/.test(blob.type)?"mp4":"webm"};
   el.hidden=true;save();gain(xp,"study room");render();wrapUp(x)})}}
@@ -692,18 +706,76 @@ const _rd=renderDeck;renderDeck=a=>{_rd(a);const top=$("#stack .card:last-child"
   try{top.animate([{transform:getComputedStyle(top).transform},{transform:"translate(46px,0) rotate(4deg)"},{transform:"translate(-46px,0) rotate(-4deg)"},{transform:getComputedStyle(top).transform}],{duration:1400,easing:"ease-in-out"});toast("Swipe right to swap, left to skip")}catch(e){}},900)}};
 /* bottom nav (mobile) */
 const NAV=document.createElement("nav");NAV.className="bnav";NAV.hidden=true;NAV.setAttribute("aria-label","Main");
-NAV.innerHTML=[["deck","🃏","Swipe"],["squad","👥","Squad"],["quests","🎯","Quests"],["prof","👤","Profile"]].map(([k,i,l])=>`<button type="button" data-n="${k}" aria-label="${l}"><span class="i">${i}</span>${l}${k=="squad"?'<span class="bd" hidden></span>':""}</button>`).join("");
+NAV.innerHTML=[["deck","🃏","Swipe"],["squad","👥","Squad"],["journey","🌱","Journey"],["quests","🎯","Quests"],["prof","👤","Profile"]].map(([k,i,l])=>`<button type="button" data-n="${k}" aria-label="${l}"><span class="i">${i}</span>${l}${k=="squad"?'<span class="bd" hidden></span>':""}</button>`).join("");
 document.body.append(NAV);
 const syncNav=t=>{NAV.querySelectorAll("[data-n]").forEach(b=>b.toggleAttribute("aria-current",b.dataset.n==t)||0);NAV.querySelectorAll("[data-n]").forEach(b=>{if(b.dataset.n==t)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
  const bd=NAV.querySelector(".bd");bd.hidden=!st.squad.length;bd.textContent=st.squad.length};
 let curTab="deck";
 NAV.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{const k=b.dataset.n;if(k=="prof")openProfile();else go(k)});
-const _go=go;go=t=>{curTab=t;_go(t);syncNav(t);window.scrollTo(0,0)};
-const _rn=render;render=()=>{_rn();syncNav(curTab)};
+go=t=>{curTab=t;document.querySelectorAll("#game>.tabs button").forEach(x=>x.setAttribute("aria-selected",x.dataset.t==t));["deck","squad","journey","quests"].forEach(k=>$("#v-"+k).hidden=k!=t);document.body.classList.toggle("m-deck",t=="deck");render();syncNav(t);window.scrollTo(0,0)};
+const _rn=render;render=()=>{_rn();syncNav(curTab);if(!me())return;window.evolve&&evolve();window.checkMs&&checkMs();window.renderJourney&&renderJourney()};
 const _st=start;start=()=>{_st();NAV.hidden=false;syncNav(curTab)};
 if(!$("#game").hidden){NAV.hidden=false;syncNav(curTab)}
 /* keep layout correct on rotation / mobile browser bars */
 addEventListener("orientationchange",()=>setTimeout(()=>{lift(0)},300));
+</script>
+<script>
+/* ===== v5: growth — goals, skill progress, evolution, reflection, journey, milestones ===== */
+const GOALS=["Pass my exams","Become fluent in a language","Build my own app","Switch careers","Get more confident"];
+const rank=n=>n>=6?"Confident":n>=3?"Practising":n>=1?"Exploring":"Not started";
+const MS=[
+ ["first","Your first study session",()=>st.sessions.length>=1],
+ ["three","3 sessions: mascot evolves",()=>st.sessions.length>=3],
+ ["eight","8 sessions: Advanced mascot",()=>st.sessions.length>=8],
+ ["goal","Set who you want to become",()=>!!me().goal],
+ ["refl1","Wrote your first reflection",()=>st.journal.length>=1],
+ ["refl5","5 reflections in your journal",()=>st.journal.length>=5],
+ ["str3","3-day streak",()=>st.streak>=3],
+ ["str7","7-day streak",()=>st.streak>=7],
+ ["fb","Great feedback (4.5★ or more)",()=>{const r=rateOf("@me");return !!r&&r.avg>=4.5}],
+ ["cert","Earned your gold star",()=>!!me().cert]];
+function evolve(){const u=me(),n=st.sessions.length,e=n>=8?2:n>=3?1:0;
+ if(e>u.level){u.level=e;save();hud();toast(`Your mascot evolved to ${LV[e]}!`)}}
+function checkMs(){const fresh=MS.filter(([k,l,f])=>f()&&!st.ms.includes(k));if(!fresh.length)return;
+ fresh.forEach(m=>st.ms.push(m[0]));save();
+ toast("Milestone: "+fresh.map(m=>m[1]).join(", "));setTimeout(()=>gain(10*fresh.length,"milestone"),1900)}
+function countSession(x){const u=me(),b=st.squad.find(y=>y.name==x.buddy),learned=b?(b.spec||SK[b.skill][0]):x.summary.topics[0],taught=u.spec||u.teach[0].t;
+ const s=t=>st.skills[t]=st.skills[t]||{l:0,t:0};s(learned).l++;s(taught).t++;save()}
+const _wu=wrapUp;
+wrapUp=x=>{if(!x.counted){x.counted=1;countSession(x);evolve()}_wu(x);injectReflect(x)};
+function injectReflect(x){const host=document.querySelector("#sheet .sheet>div:last-child");if(!host||host.tagName!="DIV")return;
+ const j=st.journal.find(r=>r.sid==x.id),sec=document.createElement("section");sec.className="sbox";
+ sec.innerHTML=j?`<h4 class="disp">Your reflection</h4><h5>I learned</h5><p class="cm">${esc(j.learned)}</p>${j.next?`<h5>I'll practise next</h5><p class="cm">${esc(j.next)}</p>`:""}<p class="auto">Saved in your growth journal.</p>`
+ :`<h4 class="disp">Reflect (+25 XP)</h4><p class="auto">Two lines now help it stick. They go into your growth journal.</p><label class="fl2">One thing I learned<textarea id="rl" maxlength="200" placeholder="e.g. How loops really work"></textarea></label><label class="fl2">One thing I'll practise next <small>(optional)</small><textarea id="rn" maxlength="200" placeholder="e.g. Write three small loops tomorrow"></textarea></label><button class="btn" id="rsv" type="button" disabled>Save to journal</button>`;
+ host.insertBefore(sec,host.children[1]||null);
+ if(!j){const l=sec.querySelector("#rl"),n=sec.querySelector("#rn"),b=sec.querySelector("#rsv");
+  l.oninput=()=>b.disabled=!l.value.trim();
+  b.onclick=()=>{const clean=v=>v.trim().replace(/[<>&"]/g,"").slice(0,200);if(!clean(l.value))return;
+   st.journal.push({sid:x.id,date:x.date,buddy:x.buddy,topic:x.summary.topics[0],learned:clean(l.value),next:clean(n.value),done:0});
+   save();gain(25,"reflection");render();wrapUp(x)}}}
+function renderJourney(){const el=$("#journey");if(!el||!me())return;const u=me(),n=st.sessions.length,mins=Math.round(st.sessions.reduce((a,x)=>a+x.dur,0)/60),
+ nx=n<3?3:n<8?8:0,prev=n<3?0:n<8?3:8,rt=rateOf("@me"),
+ names=[...new Set([...u.teach.map(x=>x.t),...u.want.map(x=>x.t),...Object.keys(st.skills)])],
+ todo=st.journal.filter(j=>j.next&&!j.done),jr=[...st.journal].reverse(),
+ tm=mins>=60?(mins/60).toFixed(1)+"h":mins+"m";
+ el.innerHTML=`
+ <section class="sbox"><div class="jhead">${mascot(SK[u.skill][2],HB[u.hobby][1],u.level)}<div style="flex:1;min-width:0"><h3 class="disp" style="font-size:24px">${esc(u.name)}'s journey</h3>
+  <p style="color:var(--mute)">${u.goal?`Becoming: <b style="color:var(--ink)">${esc(u.goal)}</b>`:"Set a goal so every session has a purpose."}</p><div class="chips"><span class="chip">${LV[u.level]}</span></div></div></div>
+  <label class="fl2">Who do you want to become?<input type="text" id="jg" maxlength="60" value="${esc(u.goal||"")}" placeholder="e.g. a confident software engineer"></label>
+  <div class="gl">${GOALS.map(g=>`<button type="button" class="opt" data-g="${esc(g)}">${esc(g)}</button>`).join("")}</div>
+  <button class="btn" id="jgs" type="button">Save goal</button></section>
+ <div class="jgrid"><div class="stat"><b>${n}</b><small>Sessions</small></div><div class="stat"><b>${tm}</b><small>Time studied</small></div><div class="stat"><b>${st.journal.length}</b><small>Reflections</small></div><div class="stat"><b>${st.streak}</b><small>Day streak</small></div><div class="stat"><b>${rt?rt.avg.toFixed(1):"–"}</b><small>Avg rating</small></div><div class="stat"><b>${lvlOf(st.xp)}</b><small>Level</small></div></div>
+ <section class="sbox"><h4 class="disp">Mascot evolution</h4>${nx?`<p>${nx-n} more session${nx-n==1?"":"s"} until your mascot evolves to ${LV[n<3?1:2]}.</p><div class="bar"><span style="width:${Math.round((n-prev)/(nx-prev)*100)}%"></span></div>`:`<p>Your mascot is fully evolved. Keep teaching to stay sharp.</p>`}<p class="auto">Mascots evolve from sessions you actually complete, not from swipes.</p></section>
+ <section class="sbox"><h4 class="disp">Your skills</h4>${names.map(t=>{const s=st.skills[t]||{l:0,t:0},c=s.l+s.t,role=[u.teach.some(x=>x.t==t)?"Teaching":"",u.want.some(x=>x.t==t)?"Learning":""].filter(Boolean).join(" · ");
+  return `<div class="sk"><div><b>${esc(t)}</b><br><small style="color:var(--mute)">${role||"Practised"} · ${rank(c)} · ${c} session${c==1?"":"s"}</small></div><div class="pips sq" aria-label="${c} sessions">${[1,2,3,4,5].map(i=>`<i class="${i<=c?"on":""}"></i>`).join("")}</div></div>`}).join("")}<p class="auto">A skill grows each time you learn or teach it in a swap session.</p></section>
+ ${todo.length?`<section class="sbox"><h4 class="disp">To practise next</h4>${todo.map(j=>`<div class="sk"><div><b>${esc(j.next)}</b><br><small style="color:var(--mute)">${esc(j.topic)} · from your session with ${esc(j.buddy)}</small></div><button class="btn alt" type="button" data-pd="${j.sid}">Done +10</button></div>`).join("")}</section>`:""}
+ <section class="sbox"><h4 class="disp">Milestones</h4>${MS.map(([k,l])=>{const d=st.ms.includes(k);return `<div class="q ${d?"done":""}"><span class="ck">${d?"✓":""}</span><b style="flex:1">${esc(l)}</b></div>`}).join("")}</section>
+ <section class="sbox"><h4 class="disp">What people say about you</h4>${rt&&rt.tags.length?`<div class="chips">${rt.tags.slice(0,5).map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>`:`<p style="color:var(--mute)">Feedback themes from your buddies show up here after rated sessions.</p>`}</section>
+ <section class="sbox"><h4 class="disp">Growth journal</h4>${jr.length?jr.map(j=>`<div class="jrn"><small style="color:var(--mute)">${fmtDT(j.date)} · ${esc(j.topic)} with ${esc(j.buddy)}</small><span><b>Learned:</b> ${esc(j.learned)}</span>${j.next?`<span><b>Next:</b> ${esc(j.next)}${j.done?" ✓":""}</span>`:""}</div>`).join(""):`<p style="color:var(--mute)">After a study session you'll be asked for one thing you learned. Your reflections collect here so you can see how far you've come.</p>`}</section>`;
+ el.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{$("#jg").value=b.dataset.g});
+ $("#jgs").onclick=()=>{u.goal=$("#jg").value.trim().replace(/[<>&"]/g,"").slice(0,60);save();toast(u.goal?"Goal saved":"Goal cleared");render()};
+ el.querySelectorAll("[data-pd]").forEach(b=>b.onclick=()=>{const j=st.journal.find(r=>r.sid==+b.dataset.pd);if(j){j.done=1;save();gain(10,"practice");render()}})}
+if(me()&&!$("#game").hidden)render();
 </script>
 </body>
 </html>
