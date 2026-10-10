@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swapi – swap skills, find your study buddy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#000;--surface:#07071a;--ink:#eef0ff;--mute:#8f95d6;--line:#2c3395;--ghost:#0b0b22;--gold:#ffd23f;--pink:#a855f7;--mint:#38bdf8;--vio:#5b6cff;--blue:#3d7bff;--grad:linear-gradient(135deg,#3d7bff,#a855f7);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.45 Figtree,system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,.disp{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;letter-spacing:-.02em}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+.ghost{position:fixed;inset:auto 0 8% 0;text-align:center;font:800 min(34vw,360px)/1 'Bricolage Grotesque',sans-serif;color:var(--ghost);pointer-events:none;z-index:0;letter-spacing:-.06em}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:16px}
+.hud{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 0 14px}
+.logo{font-size:30px;color:var(--vio)}
+.logo i{color:var(--pink);font-style:normal}
+.xp{flex:1;min-width:150px}
+.xp b{font-size:13px}.bar{height:12px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:3px}
+.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--gold));transition:width .6s}
+.pill{display:inline-flex;gap:6px;align-items:center;padding:4px 12px;border-radius:99px;font-weight:600;font-size:14px;background:var(--surface);border:2px solid var(--line)}
+/* onboarding */
+.onb{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;padding:20px 0}
+@media(max-width:760px){.onb{grid-template-columns:1fr}}
+.onb h1{font-size:clamp(38px,6vw,64px);line-height:1}
+.onb p.lead{color:var(--mute);margin:12px 0 18px;max-width:42ch}
+form{display:grid;gap:12px}
+label.f{display:grid;gap:4px;font-weight:600;font-size:14px}
+select,input[type=text]{padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--surface);width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{border:0;border-radius:16px;padding:14px 22px;font-weight:800;cursor:pointer;background:var(--vio);color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.28);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+.btn.alt{background:var(--surface);color:var(--ink);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.up{cursor:pointer;text-align:center;padding:12px;border:2px dashed var(--line);border-radius:14px;font-weight:600;color:var(--mute)}
+.up input{display:none}.up.ok{border-color:var(--gold);color:var(--gold)}
+.prev{background:var(--surface);border:2px solid var(--line);border-radius:28px;padding:22px;text-align:center}
+.prev svg{width:min(240px,60vw);animation:bob 1s steps(1) infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.prev h2{font-size:28px;margin-top:6px}
+.tag{display:inline-block;padding:4px 14px;border-radius:99px;font-weight:800;font-size:14px;color:#1d1640}
+/* game */
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs button{flex:1;padding:11px;border-radius:14px;border:2px solid var(--line);background:var(--surface);font-weight:800;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.nm{font-size:26px;display:flex;align-items:center;gap:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{font-size:13px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
+.pips{display:flex;gap:4px;align-items:center;font-size:13px;color:var(--mute)}.pips i{width:16px;height:8px;border-radius:5px;background:var(--line)}.pips i.on{background:var(--gold)}
+.empty{text-align:center;padding:60px 10px;color:var(--mute)}
+.list{display:grid;gap:12px}
+.item{display:flex;gap:14px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px}
+.item svg{width:72px;flex:none}.item .grow{flex:1;min-width:0}
+.q{display:flex;align-items:center;gap:12px;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px}
+.q .ck{width:30px;height:30px;border-radius:50%;border:3px solid var(--line);display:grid;place-items:center;flex:none;font-weight:800}
+.q.done .ck{background:var(--mint);border-color:var(--mint);color:#fff}
+.modal{position:fixed;inset:0;background:rgba(10,5,40,.8);display:grid;place-items:center;z-index:50;padding:20px;text-align:center}
+.modal .box{background:var(--surface);border-radius:30px;padding:26px;max-width:420px;width:100%;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.modal h2{font-size:44px;color:var(--pink);line-height:1}
+.pair{display:flex;justify-content:center;align-items:center;margin:10px 0}.pair svg{width:130px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 20px;border-radius:99px;font-weight:800;z-index:60;animation:tst 1.8s forwards}
+@keyframes tst{0%{opacity:0;transform:translate(-50%,20px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+.cf{position:fixed;top:-12px;width:10px;height:14px;z-index:70;animation:fall 2.2s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.item .col{display:grid;gap:8px}
+.sheet{display:flex;flex-direction:column;text-align:left;height:min(660px,90vh);padding:16px;max-width:460px;width:100%}
+.sh-h{display:flex;gap:12px;align-items:center;margin-bottom:10px}.sh-h svg{width:56px}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px 2px}
+.m{max-width:80%;padding:9px 14px;border-radius:18px;word-wrap:break-word}
+.m.me{align-self:flex-end;background:var(--vio);color:#fff;border-bottom-right-radius:4px}
+.m.them{align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:4px}
+.sys{align-self:center;font-size:13px;font-weight:600;color:var(--mint);background:var(--bg);padding:4px 12px;border-radius:99px}
+.qr{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.qr .chip,.slots .chip{cursor:pointer;color:var(--ink)}
+.send{display:flex;gap:8px}.send .btn{padding:10px 18px}
+.cal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.cal-h .btn{padding:6px 16px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.cal small{color:var(--mute);font-weight:600}
+.d{aspect-ratio:1;border-radius:12px;border:2px solid var(--line);background:var(--bg);cursor:pointer;font-weight:600}
+.d:disabled{opacity:.3;cursor:default}.d.td{border-color:var(--gold)}.d.on,.chip.s.on{background:var(--vio);color:#fff;border-color:var(--vio)}
+.slots{display:flex;flex-wrap:wrap;gap:6px}.chip.s{padding:8px 14px}.chip:disabled{opacity:.3;text-decoration:line-through;cursor:default}
+.btn:disabled{opacity:.45;cursor:default}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.item,.q,.prev,.box,.tabs button,select,input[type=text],.pill,.d,.chip,.up,.pom,textarea{border:2px solid transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--grad) border-box}
+.tabs button[aria-selected=true]{background:var(--grad);color:#fff;border-color:transparent}
+.btn.alt{border-color:var(--blue)}
+.item svg{width:52px}.sh-h svg{width:40px}.pair svg{width:90px}.mini svg{width:24px;display:block}
+#prof{cursor:pointer;gap:8px}
+.onb h1{background:linear-gradient(90deg,#3d7bff,#a855f7,#38bdf8,#3d7bff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shim 7s linear infinite}
+@keyframes shim{to{background-position:300% 0}}
+.prev{background:transparent;border-color:transparent;padding:10px}
+.portal{position:relative;width:min(280px,64vw);aspect-ratio:1;margin:0 auto 14px}
+.portal i,.portal u{position:absolute;border-radius:50%}
+.portal i{inset:0;border:4px solid transparent;background:conic-gradient(from 0deg,#3d7bff,#a855f7,transparent 45%,#38bdf8,#3d7bff) border-box;-webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) padding-box exclude,linear-gradient(#000 0 0);animation:spin 5s linear infinite;filter:drop-shadow(0 0 8px #5b6cff)}
+.portal i:nth-child(2){inset:12%;animation-duration:3.4s;animation-direction:reverse}
+.portal i:nth-child(3){inset:25%;animation-duration:2.2s}
+.portal u{inset:38%;background:radial-gradient(circle,#fff 0,#a855f7 35%,#3d7bff 62%,transparent 74%);animation:pls 2.4s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes pls{50%{transform:scale(1.35);opacity:.7}}
+.room{position:fixed;inset:0;z-index:80;background:#000;display:grid;place-items:center;padding:16px;overflow:auto}
+.enter{text-align:center}.portal.big{width:min(340px,70vw);margin-bottom:20px;animation:zm 2.2s ease-in forwards}@keyframes zm{to{transform:scale(1.6);opacity:.35}}
+.rm{width:min(960px,100%);display:grid;grid-template-columns:2fr 1fr;grid-template-rows:auto minmax(280px,1fr) auto;gap:12px;height:min(700px,100%)}
+.rm-h{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
+.tile{position:relative;border-radius:22px;border:3px solid transparent;background:linear-gradient(#050514,#050514) padding-box,var(--grad) border-box;display:grid;place-items:center;overflow:hidden;transition:box-shadow .2s}
+.tile.talk{box-shadow:0 0 0 3px #38bdf8,0 0 28px #5b6cff}.tile .av svg{width:min(100px,55%);display:block;margin:auto}
+.tile .lbl{position:absolute;left:10px;bottom:8px;font-weight:600;font-size:14px;background:#000a;padding:2px 10px;border-radius:99px;display:flex;gap:6px;align-items:center}
+.tile.off .av{opacity:0}.tile.off::after{content:"Camera off";position:absolute;color:var(--mute)}
+.side{display:flex;flex-direction:column;gap:12px;min-height:0}
+.pom{border-radius:20px;padding:14px;text-align:center}.pom b{display:block;font:800 44px 'Bricolage Grotesque';margin-bottom:6px}
+textarea{flex:1;min-height:110px;border-radius:16px;padding:12px;resize:none;width:100%}
+.ctl{grid-column:1/-1;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.fl{position:fixed;bottom:90px;font-size:34px;z-index:90;animation:up 1.6s forwards;pointer-events:none}@keyframes up{to{transform:translateY(-300px);opacity:0}}
+@media(max-width:700px){.rm{grid-template-columns:1fr;height:auto}}
+.stack{position:relative;height:min(600px,calc(100vh - 340px));height:min(600px,calc(100dvh - 340px));min-height:470px;max-width:390px;margin:0 auto}
+.card{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;border-radius:26px;border:2px solid transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--grad) border-box;touch-action:pan-y;user-select:none;cursor:grab;will-change:transform;transition:transform .45s cubic-bezier(.2,1.3,.4,1),opacity .3s;box-shadow:0 24px 60px -10px rgba(91,108,255,.35)}
+.card.drag{transition:none;cursor:grabbing}.card.in{animation:rise .6s cubic-bezier(.2,1.2,.4,1) backwards;animation-delay:calc(var(--k)*.08s)}
+@keyframes rise{from{transform:translateY(60px) scale(.88);opacity:0}}
+.card .art{height:46%;position:relative;display:grid;place-items:center;background:radial-gradient(circle at 50% 62%,var(--g),transparent 66%),repeating-linear-gradient(0deg,#ffffff0a 0 1px,transparent 1px 20px),repeating-linear-gradient(90deg,#ffffff0a 0 1px,transparent 1px 20px)}
+.card .art svg{height:68%;max-height:130px;filter:drop-shadow(0 0 14px var(--c))}
+.card .info{padding:14px 18px 16px;flex:1}
+.ring{position:absolute;top:12px;right:12px;width:60px;height:60px;border-radius:50%;display:grid;place-content:center;text-align:center;line-height:1;background:conic-gradient(#3d7bff 0,#a855f7 calc(var(--p)*1%),#1b1f55 0)}
+.ring::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--surface)}
+.ring b,.ring small{position:relative}.ring b{font:800 18px 'Bricolage Grotesque'}.ring small{font-size:9px;color:var(--mute)}
+.ov{position:absolute;inset:0;opacity:0;pointer-events:none;z-index:2}.ov.yes{background:linear-gradient(90deg,#38bdf866,transparent 65%)}.ov.no{background:linear-gradient(270deg,#a855f766,transparent 65%)}
+.badge{position:absolute;top:24px;z-index:3;font:800 20px 'Bricolage Grotesque';letter-spacing:.1em;padding:3px 14px;border-radius:10px;border:3px solid;opacity:0;background:#000b}
+.badge.yes{left:18px;color:#38bdf8;transform:rotate(-8deg)}.badge.no{right:18px;top:84px;color:#c084fc;transform:rotate(8deg)}
+.why{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}.why span{font-size:12px;color:#8fd0ff;border:1px solid #2c3395;border-radius:8px;padding:2px 8px;background:#3d7bff14}
+.trail{display:flex;gap:5px;max-width:390px;margin:0 auto 10px}.trail i{flex:1;height:4px;border-radius:4px;background:var(--line)}.trail i.d{background:var(--grad)}
+.acts{display:flex;justify-content:center;align-items:center;gap:22px;margin-top:20px}
+.act{width:66px;height:66px;border-radius:50%;border:2px solid;background:var(--surface);font-size:26px;cursor:pointer;transition:transform .15s,box-shadow .2s}
+.act.no{color:#c084fc;border-color:#a855f7}.act.yes{color:#38bdf8;border-color:#38bdf8}.act.bo{width:52px;height:52px;color:#ffd23f;border-color:#ffd23f;font-size:20px}
+.act:hover:not(:disabled){transform:scale(1.1);box-shadow:0 0 24px currentColor}.act:active{transform:scale(.94)}.act.used{opacity:.4}.act:disabled{opacity:.25;cursor:default}
+.hint{color:var(--mute);font-size:13px;text-align:center;margin-top:12px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="ghost" aria-hidden="true">swapi</div>
+<div class="wrap">
+ <header class="hud">
+  <div class="logo disp">swap<i>i</i></div>
+  <div class="xp" id="xpbox" hidden><b id="lvl"></b><div class="bar"><span id="xpb"></span></div></div>
+  <span class="pill" id="streak" hidden></span><button class="pill" id="prof" hidden aria-label="Open your profile"></button>
+ </header>
+
+ <section class="onb" id="onb">
+  <div>
+   <h1>Swap skills.<br>Find your study buddy.</h1>
+   <p class="lead">Pick what you study and what you love. Swapi hands you a mascot, a tag, and buddies to swipe. Only your name is required.</p>
+   <form id="form">
+    <label class="f">Your name<input type="text" id="name" maxlength="18" placeholder="e.g. Alex" required autocomplete="off"></label>
+    <div class="row">
+     <label class="f">Skill I can teach<select id="skill"></select></label>
+     <label class="f">My level<select id="level"></select></label>
+    </div>
+    <label class="f">Skill I want to learn<select id="learn"></select></label>
+    <div class="row">
+     <label class="f">Hobby<select id="hobby"></select></label>
+     <label class="f">Confidence<select id="conf"></select></label>
+    </div>
+    <label class="up" id="upl">Add a certificate for a gold star and 100 XP<input type="file" id="cert" accept="image/*,.pdf"></label>
+    <button class="btn" type="submit">Start swiping</button>
+   </form>
+  </div>
+  <div class="prev" id="prev"><div class="portal"><i></i><i></i><i></i><u></u></div><div id="pv" style="text-align:center"></div></div>
+ </section>
+
+ <main id="game" hidden>
+  <div class="tabs" role="tablist">
+   <button role="tab" data-t="deck" aria-selected="true">Swipe</button>
+   <button role="tab" data-t="squad" aria-selected="false">Squad <span id="sc"></span></button>
+   <button role="tab" data-t="quests" aria-selected="false">Quests</button>
+  </div>
+  <div id="v-deck"><div style="text-align:center;margin-bottom:10px"><span class="pill" id="cnt"></span></div><div class="trail" id="trail"></div><div class="stack" id="stack" aria-label="Buddy cards"></div>
+   <div class="acts"><button class="act no" id="no" aria-label="Skip buddy">✕</button><button class="act bo" id="bo" aria-label="Boost: guaranteed match, once a day">⚡</button><button class="act yes" id="yes" aria-label="Swap with buddy">♥</button></div>
+   <p class="hint">Drag right to swap, left to skip · ← → keys · ⚡ boost once a day</p></div>
+  <div id="v-squad" hidden><div id="meets"></div><div class="list" id="squad"></div></div>
+  <div id="v-quests" hidden>
+   <div id="quests"></div>
+   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="btn alt" id="edit">Open profile</button><button class="btn alt" id="reset">Reset game</button></div>
+  </div>
+ </main>
+</div>
+<div id="modal" class="modal" hidden></div>
+<div id="sheet" class="modal" hidden></div>
+<div id="portal" class="room" hidden></div>
+
+<script>
+const SK={maths:["Maths","Calcufox","fox"],coding:["Coding","Bytebat","bat"],science:["Science","Atomole","mole"],lang:["Languages","Polyglotto","parrot"],history:["History","Chronowl","owl"],art:["Art & Design","Palettail","cham"]};
+const HB={gaming:["Gaming","#4f8cff","Quest Seeker"],music:["Music","#a78bfa","Beat Keeper"],sport:["Sport","#22d3ee","Team Spark"],read:["Reading","#c084fc","Page Turner"],cook:["Cooking","#6366f1","Snack Boss"],film:["Film","#60a5fa","Plot Hunter"]};
+const LV=["Beginner","Intermediate","Advanced"],CF=["Just winging it","Shaky","Okay","Solid","Teach-the-class"];
+const NAMES=["Mira","Jonas","Priya","Leo","Zainab","Kofi","Ana","Tomás","Hana","Sam","Ivy","Dev","Noor","Finn"];
+const QS={maths:"Solve one tricky problem each, then swap methods.",coding:"Debug each other's last bug on a shared screen.",science:"Explain one concept using only a kitchen analogy.",lang:"Hold a 5-minute chat in the language you share.",history:"Argue opposite sides of one event for 5 minutes.",art:"Swap sketches and give one improvement each."};
+const $=s=>document.querySelector(s),pick=a=>a[Math.random()*a.length|0],day=()=>new Date().toDateString();
+const fill=(el,o,d)=>el.innerHTML=Object.entries(o).map(([k,v])=>`<option value="${k}">${Array.isArray(v)?v[0]:v}</option>`).join("");
+fill($("#skill"),SK);fill($("#hobby"),HB);fill($("#learn"),SK);$("#learn").value="coding";
+$("#level").innerHTML=LV.map((l,i)=>`<option value="${i}">${l}</option>`).join("");
+$("#conf").innerHTML=CF.map((l,i)=>`<option value="${i+1}"${i==2?" selected":""}>${l}</option>`).join("");
+
+let st={user:null,xp:0,streak:0,last:"",day:day(),swipes:0,mt:0,squad:[],seen:[],chats:{},meetings:[],notes:{},joined:0},pool=[];
+try{Object.assign(st,JSON.parse(localStorage.getItem("swapi")||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem("swapi",JSON.stringify(st))}catch(e){}};
+
+const mix=(c,t)=>{const n=parseInt(c.slice(1),16);return"#"+[16,8,0].map(s=>Math.round(((n>>s)&255)*(1-t)+255*t).toString(16).padStart(2,"0")).join("")};
+function pix(g,pal,w,h,label,extra=""){let r="";g.forEach((row,y)=>{for(let x=0;x<w;){const ch=row[x];if(ch=="."||!pal[ch]){x++;continue}let e=x;while(row[e+1]==ch)e++;r+=`<rect x="${x}" y="${y}" width="${e-x+1}" height="1" fill="${pal[ch]}"/>`;x=e+1}});return`<svg viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" role="img" aria-label="${label}" ${extra}>${r}</svg>`}
+const TOP={
+fox:["..D..........D..",".DBD........DBD.",".DBBD......DBBD.",".DBBBDDDDDDBBBD.","..DBBBBBBBBBBD.."],
+bat:[".D............D.",".DD..........DD.",".DBD........DBD.",".DBBDDDDDDDDBBD.","..DBBBBBBBBBBD.."],
+mole:["................","..DDD......DDD..",".DBBBD....DBBBD.",".DBBBDDDDDDBBBD.","..DBBBBBBBBBBD.."],
+parrot:["......R.R.R.....","......RRRRR.....","......DDDD......".slice(0,16).padEnd(16,"."),"..DDDDDDDDDDDD..","..DBBBBBBBBBBD.."],
+owl:["..D..........D..","..DD........DD..","..DBDDDDDDDDBD..",".DBBBBBBBBBBBBD.","..DBBBBBBBBBBD.."],
+cham:[".....D.D.D......","....DYDYDYD.....","...DDDDDDDDD....","..DBBBBBBBBBBD..","..DBBBBBBBBBBD.."]};
+const BODY=["..DBBBBBBBBBBD..",".DBBBBBBBBBBBBD.",".DBBWWBBBBWWBBD.",".DBBWKBBBBWKBBD.",".DBBBBBBBBBBBBD.",".DBPPBBDDBBPPBD.",".DBBBBLLLLBBBBD.","..DBBBLLLLLLBBD.","..DBBBBBBBBBBD..","...DDBBBBBBDD...","....DDDDDDDD...."];
+const PATCH={bat:[[10,7,"W"],[10,8,"W"]],mole:[[8,7,"P"],[8,8,"P"]],parrot:[[8,7,"O"],[8,8,"O"],[9,7,"O"],[9,8,"O"],[10,7,"O"],[10,8,"O"]],owl:[[5,4,"W"],[5,5,"W"],[5,10,"W"],[5,11,"W"]],cham:[[11,15,"D"],[12,15,"B"],[13,15,"B"],[13,14,"B"],[14,15,"D"],[14,14,"D"]]};
+function mascot(t,c,l){
+ const g=[...TOP[t],...BODY.slice(1)].map(r=>r.split(""));
+ (PATCH[t]||[]).forEach(([y,x,ch])=>g[y][x]=ch);
+ if(l>0)for(let x=2;x<14;x++)if(g[6][x]=="B")g[6][x]=l==2?"Y":"R";
+ if(l==2)[6,7,8,9].forEach(x=>{if(g[4][x]=="B")g[4][x]="Y"});
+ return pix(g.map(r=>r.join("")),{D:"#1d1640",B:c,L:mix(c,.5),W:"#fff",K:"#1d1640",P:"#d8b4fe",O:"#ff9a3d",R:"#c084fc",Y:"#ffd23f"},16,16,t+" mascot")}
+const star=pix(["...Y...","...Y...","..YYY..","YYYYYYY",".YYYYY.","..YYY..",".YY.YY."],{Y:"#ffd23f"},7,7,"Certificate uploaded",'width="22" height="22" style="filter:drop-shadow(0 0 0 #a87800) drop-shadow(1px 1px 0 #a87800);flex:none"');
+const me=()=>st.user;
+const lvlOf=x=>Math.floor(x/100)+1;
+function toast(t){const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),1850)}
+function gain(n,why){const a=lvlOf(st.xp);st.xp+=n;save();hud();toast(`+${n} XP ${why||""}`);if(lvlOf(st.xp)>a)setTimeout(()=>toast(`Level ${lvlOf(st.xp)} reached!`),1900)}
+function hud(){if(!me())return;const u=me();$("#prof").hidden=false;$("#prof").innerHTML=`<span class="mini">${mascot(SK[u.skill][2],HB[u.hobby][1],u.level)}</span>${u.name}${u.cert?star:""}`;$("#xpbox").hidden=$("#streak").hidden=false;$("#lvl").textContent=`Level ${lvlOf(st.xp)} · ${st.xp%100}/100 XP`;$("#xpb").style.width=st.xp%100+"%";$("#streak").textContent=`🔥 ${st.streak}-day streak`}
+
+/* onboarding */
+let cert=null;
+function preview(){const s=$("#skill").value,h=$("#hobby").value,n=$("#name").value.replace(/[<>&]/g,"");$("#pv").innerHTML=`<h2>${n||"Your name"}${cert?star:""}</h2><p style="color:var(--mute)">Your mascot will be <b>${SK[s][1]}</b></p><span class="tag" style="background:${HB[h][1]}">${HB[h][2]}</span>`}
+["skill","hobby","level","name"].forEach(i=>$("#"+i).addEventListener("input",preview));
+function uploadHandler(e,after){const f=e.target.files[0];if(!f)return;const first=!cert;cert=f.name;$("#upl").classList.add("ok");$("#upl").firstChild.textContent="Certificate added: "+f.name;preview();after&&after(first)}
+$("#cert").onchange=e=>uploadHandler(e);
+$("#form").onsubmit=e=>{e.preventDefault();const n=$("#name").value.trim();if(!n)return;
+ const first=!me();st.user={name:n.replace(/[<>&"]/g,""),learn:$("#learn").value==$("#skill").value?Object.keys(SK).find(k=>k!=$("#skill").value):$("#learn").value,skill:$("#skill").value,level:+$("#level").value,hobby:$("#hobby").value,conf:+$("#conf").value,cert:cert};
+ if(cert&&first)st.xp+=100;st.seen=[];st.squad=[];st.chats={};st.meetings=[];save();start()};
+$("#edit").onclick=()=>openProfile();
+$("#reset").onclick=()=>{if(confirm("Reset XP, squad and profile?")){try{localStorage.removeItem("swapi")}catch(e){}location.reload()}};
+
+/* buddies */
+function gen(){const u=me(),K=Object.keys(SK);return [...NAMES].sort(()=>Math.random()-.5).slice(0,9).map(n=>{const sk=Math.random()<.45?u.learn:pick(K),b={name:n,skill:sk,learn:Math.random()<.45?u.skill:pick(K.filter(k=>k!=sk)),level:Math.random()*3|0,hobby:Math.random()<.3?u.hobby:pick(Object.keys(HB)),conf:1+Math.random()*5|0,cert:Math.random()<.4};
+ if(b.learn==b.skill)b.learn=K.find(k=>k!=b.skill);
+ b.syn=Math.min(99,25+(b.skill==u.learn?30:0)+(b.learn==u.skill?20:0)+[12,6,1][Math.abs(b.level-u.level)]+(b.hobby==u.hobby?8:0)+(Math.abs(b.conf-u.conf)<2?8:0)+(Math.random()*5|0));return b}).sort((a,b)=>b.syn-a.syn)}
+
+/* swipe stack (left/right) */
+const done=new Set(),hash=s=>[...s].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7),ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+let flying=0;const boosted=()=>st.boost===day();
+function why(b){const u=me(),r=[];if(b.skill==u.learn)r.push("Can teach you "+SK[b.skill][0]);if(b.learn==u.skill)r.push("Wants to learn "+SK[u.skill][0]);if(b.level==u.level)r.push("Same level");if(b.hobby==u.hobby)r.push("Shared hobby");return r.slice(0,3)}
+function card(b){const h=HB[b.hobby],w=why(b);return `<div class="ov yes"></div><div class="ov no"></div><span class="badge yes">SWAP</span><span class="badge no">SKIP</span>
+ <div class="art" style="--c:${h[1]};--g:${h[1]}55">${mascot(SK[b.skill][2],h[1],b.level)}<div class="ring" style="--p:${b.syn}"><b>${b.syn}</b><small>sync</small></div></div>
+ <div class="info"><h2 class="nm">${b.name}${b.cert?star:""}</h2><span class="tag" style="background:${h[1]}">${h[2]}</span>
+ <div class="chips"><span class="chip">Teaches ${SK[b.skill][0]}</span><span class="chip">Wants ${SK[b.learn||"maths"][0]}</span><span class="chip">${LV[b.level]}</span><span class="chip">${h[0]}</span></div>
+ ${w.length?`<div class="why">${w.map(x=>`<span>✓ ${x}</span>`).join("")}</div>`:""}
+ <div class="pips">${[1,2,3,4,5].map(i=>`<i class="${i<=b.conf?"on":""}"></i>`).join("")} ${CF[b.conf-1]}</div></div>`}
+function place(el,k,p){const kk=k-p;el.style.transform=`translateY(${kk*15}px) scale(${1-kk*.05})`;el.style.opacity=kk>2?0:1}
+const lift=p=>[...$("#stack").children].forEach((el,i,a)=>{const k=a.length-1-i;if(k>0&&el._b)place(el,k,p)});
+function renderDeck(anim){const left=pool.filter(b=>!st.seen.includes(b.name)),sk=$("#stack");
+ $("#trail").innerHTML=pool.map(b=>`<i class="${st.seen.includes(b.name)?"d":""}"></i>`).join("");
+ $("#cnt").textContent=left.length?`${left.length} buddies in your deck`:"Deck cleared";
+ $("#bo").classList.toggle("used",boosted());$("#no").disabled=$("#yes").disabled=$("#bo").disabled=!left.length;
+ if(!left.length){sk.innerHTML=`<div class="empty"><h2 class="disp">Deck cleared</h2><p>Check your Squad, or deal fresh buddies.</p><br><button class="btn" id="more">Deal new buddies</button></div>`;$("#more").onclick=()=>{pool=gen();st.seen=[];done.clear();save();renderDeck(1)};return}
+ sk.innerHTML="";left.slice(0,3).reverse().forEach((b,i,a)=>{const k=a.length-1-i,d=document.createElement("div");d.className="card"+(anim?" in":"");d.style.setProperty("--k",k);d.innerHTML=card(b);place(d,k,0);d._b=b;sk.append(d);if(!k)drag(d)})}
+function drag(el){let x0,y0,t0,dx=0,on=0;const q=s=>el.querySelector(s),Y=[q(".ov.yes"),q(".badge.yes")],N=[q(".ov.no"),q(".badge.no")];
+ el.onpointerdown=e=>{if(flying)return;on=1;x0=e.clientX;y0=e.clientY;t0=performance.now();el.setPointerCapture(e.pointerId);el.classList.add("drag")};
+ el.onpointermove=e=>{if(!on)return;dx=e.clientX-x0;const dy=(e.clientY-y0)*.25;el.style.transform=`translate(${dx}px,${dy}px) rotate(${dx/16}deg)`;
+  Y.forEach(x=>x.style.opacity=Math.min(1,Math.max(0,dx/110)));N.forEach(x=>x.style.opacity=Math.min(1,Math.max(0,-dx/110)));lift(Math.min(1,Math.abs(dx)/150))};
+ el.onpointerup=el.onpointercancel=()=>{if(!on)return;on=0;el.classList.remove("drag");const v=Math.abs(dx)/(performance.now()-t0+1);
+  if(Math.abs(dx)>110||(v>.6&&Math.abs(dx)>40))fling(dx>0);else{place(el,0,0);el.style.transform="";[...Y,...N].forEach(x=>x.style.opacity=0);lift(0)}dx=0}}
+function fling(yes,bst){const el=$("#stack .card:last-child");if(flying||!el||!el._b)return;flying=1;const b=el._b,W=innerWidth;
+ const [o,bd]=[el.querySelector(yes?".ov.yes":".ov.no"),el.querySelector(yes?".badge.yes":".badge.no")];o.style.opacity=bd.style.opacity=1;if(bst)bd.textContent="⚡ BOOST";
+ el.classList.remove("drag");el.style.transition="transform .5s cubic-bezier(.3,.7,.3,1),opacity .5s";el.style.transform=`translate(${yes?W:-W}px,-70px) rotate(${yes?38:-38}deg)`;el.style.opacity=0;lift(1);
+ setTimeout(()=>{flying=0;settle(b.name,yes,bst);renderDeck()},430)}
+function boost(){if(boosted())return toast("Boost used today. It resets tomorrow");const t=$("#stack .card:last-child");if(!t||!t._b)return;st.boost=day();save();fling(1,1)}
+$("#yes").onclick=()=>fling(1);$("#no").onclick=()=>fling(0);$("#bo").onclick=boost;
+function settle(n,yes,boost){if(done.has(n))return;done.add(n);const b=pool.find(x=>x.name==n);st.seen.push(n);if(st.day!=day()){st.day=day();st.swipes=0;st.mt=0}st.swipes++;gain(5);
+ if(yes&&(boost||Math.random()<.25+b.syn/140)){st.squad.push(b);st.chats[n]=[{f:n,t:`Hey ${me().name}! Want to swap ${SK[b.skill][0]} tips?`}];st.mt++;save();gain(50,"match!");matchModal(b)}else save();render()}
+addEventListener("keydown",e=>{if($("#v-deck").hidden||!$("#modal").hidden||!$("#sheet").hidden||!$("#portal").hidden||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key=="ArrowRight")fling(1);if(e.key=="ArrowLeft")fling(0);if(e.key=="ArrowUp")boost()});
+
+function matchModal(b){const m=$("#modal"),u=me();m.hidden=false;
+ m.innerHTML=`<div class="box" role="dialog" aria-label="New match"><h2>It's a swap!</h2><div class="pair">${mascot(SK[u.skill][2],HB[u.hobby][1],u.level)}${mascot(SK[b.skill][2],HB[b.hobby][1],b.level)}</div><p><b>${u.name}</b> and <b>${b.name}</b> are ${b.syn}% in sync.</p><p style="color:var(--mute);margin:8px 0 16px">Chat and book a study session from your Squad.</p><button class="btn" id="oc">Open chat</button> <button class="btn alt" id="ok">Keep swiping</button></div>`;
+ $("#ok").focus();$("#ok").onclick=()=>m.hidden=true;$("#oc").onclick=()=>{m.hidden=true;openSheet(b.name,"chat")};
+ for(let i=0;i<60;i++){const c=document.createElement("i");c.className="cf";c.style.left=Math.random()*100+"vw";c.style.background=pick(["#3d7bff","#a855f7","#38bdf8","#ffd23f"]);c.style.animationDelay=Math.random()*.6+"s";document.body.append(c);setTimeout(()=>c.remove(),3000)}}
+
+/* squad, quests, chat, calendar */
+const LINES={maths:["I'm stuck on a proof. Want to tackle it together?","Show me your favourite shortcut and I'll show mine."],coding:["Got a bug that only shows up on Tuesdays. Fancy a look?","Pair-programming beats solo debugging every time."],science:["Can you explain entropy with a kitchen analogy?","I'll bring the diagrams if you bring the questions."],lang:["Let's do five minutes of chat in our shared language.","What's one phrase you keep forgetting?"],history:["Which event should we argue about first?","I've got a timeline we can fight over."],art:["Send me a sketch and I'll give one honest tweak.","Colour palettes are my weak spot. Help?"]};
+const fmt=d=>new Date(d+"T12:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}),hh=h=>String(h).padStart(2,"0")+":00";
+let sh={};
+function render(){
+ $("#sc").textContent=st.squad.length?`(${st.squad.length})`:"";
+ const t=ymd(new Date()),up=st.meetings.filter(m=>m.d>=t).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.h-b.h);
+ $("#meets").innerHTML=up.length?`<h3 class="disp" style="margin-bottom:8px">Upcoming meetings</h3>`+up.map(m=>`<div class="q"><span class="ck">📅</span><div style="flex:1"><b>${fmt(m.d)} at ${hh(m.h)}</b><br><small style="color:var(--mute)">with ${m.n} · ${stat(m)}</small></div><div class="col"><button class="btn" data-e="${m.n}">Enter portal</button><button class="btn alt" data-x="${m.n}|${m.d}|${m.h}">Cancel</button></div></div>`).join("")+`<br>`:"";
+ $("#squad").innerHTML=st.squad.length?st.squad.map((b,i)=>`<div class="item">${mascot(SK[b.skill][2],HB[b.hobby][1],b.level)}<div class="grow"><h3 class="nm" style="font-size:20px">${b.name}${b.cert?star:""}</h3><span class="tag" style="background:${HB[b.hobby][1]}">${HB[b.hobby][2]}</span><p style="font-size:14px;color:var(--mute);margin:6px 0">${b.done?"Quest complete. Nice teamwork.":QS[b.skill]}</p>${b.done?"":`<button class="btn alt" style="padding:6px 12px" data-q="${i}">Quest done +20</button>`}</div><div class="col"><button class="btn" data-c="${b.name}">Chat</button><button class="btn alt" data-b="${b.name}">Book</button><button class="btn alt" data-e="${b.name}">Study room</button></div></div>`).join(""):`<div class="empty"><h2 class="disp">No squad yet</h2><p>Swap a buddy to try for a match. Matches unlock chat and booking.</p></div>`;
+ document.querySelectorAll("[data-q]").forEach(x=>x.onclick=()=>{st.squad[x.dataset.q].done=1;gain(20,"quest");render()});
+ document.querySelectorAll("[data-c]").forEach(x=>x.onclick=()=>openSheet(x.dataset.c,"chat"));
+ document.querySelectorAll("[data-b]").forEach(x=>x.onclick=()=>openSheet(x.dataset.b,"book"));
+ document.querySelectorAll("[data-e]").forEach(x=>x.onclick=()=>enter(x.dataset.e));
+ document.querySelectorAll("[data-x]").forEach(x=>x.onclick=()=>{const[n,d,h]=x.dataset.x.split("|");st.meetings=st.meetings.filter(m=>!(m.n==n&&m.d==d&&m.h==+h));save();render();toast("Meeting cancelled")});
+ const q=[["Swipe 5 buddies",st.swipes>=5,`${Math.min(st.swipes,5)}/5`],["Make a match",st.mt>=1,`${Math.min(st.mt,1)}/1`],["Book a study meeting",st.meetings.length>0,st.meetings.length?"done":"in Squad"],["Join a study room",st.joined>0,st.joined?"done":"in Squad"],["Earn your gold star (certificate)",!!me().cert,me().cert?"done":"in Profile"]];
+ $("#quests").innerHTML=q.map(x=>`<div class="q ${x[1]?"done":""}"><span class="ck">${x[1]?"✓":""}</span><div class="grow" style="flex:1"><b>${x[0]}</b></div><span class="pill">${x[2]}</span></div>`).join("")}
+
+function openSheet(n,tab){sh={n,tab,m:new Date(),sel:null,slot:null};$("#sheet").hidden=false;drawSheet()}
+function drawSheet(){const b=st.squad.find(x=>x.name==sh.n),el=$("#sheet");if(!b)return;
+ el.innerHTML=`<div class="box sheet" role="dialog" aria-label="${b.name}"><div class="sh-h">${mascot(SK[b.skill][2],HB[b.hobby][1],b.level)}<div style="flex:1"><h3 class="nm" style="font-size:20px">${b.name}${b.cert?star:""}</h3><span class="tag" style="background:${HB[b.hobby][1]}">${HB[b.hobby][2]}</span></div><button class="btn alt" id="x" aria-label="Close">✕</button></div>
+ <div class="tabs"><button data-s="chat" aria-selected="${sh.tab=="chat"}">Chat</button><button data-s="book" aria-selected="${sh.tab=="book"}">Book meeting</button></div><div id="sb" style="flex:1;min-height:0;display:flex;flex-direction:column"></div></div>`;
+ $("#x").onclick=()=>el.hidden=true;el.onclick=e=>{if(e.target==el)el.hidden=true};
+ el.querySelectorAll("[data-s]").forEach(x=>x.onclick=()=>{sh.tab=x.dataset.s;drawSheet()});
+ sh.tab=="chat"?drawChat(b):drawBook(b)}
+function msgs(){const b=st.squad.find(x=>x.name==sh.n);$("#msgs").innerHTML=(st.chats[b.name]||[]).map(m=>m.s?`<div class="sys">${m.t}</div>`:`<div class="m ${m.f=="me"?"me":"them"}">${m.t}</div>`).join("")+(sh.typing?`<div class="m them">…</div>`:"");$("#msgs").scrollTop=1e5}
+function drawChat(b){$("#sb").innerHTML=`<div class="msgs" id="msgs" aria-live="polite"></div><div class="qr">${["Hi! Ready to study?","Which topic first?","When are you free?"].map(t=>`<button class="chip" data-t="${t}">${t}</button>`).join("")}</div><div class="send"><input id="ci" maxlength="200" placeholder="Message ${b.name}" autocomplete="off"><button class="btn" id="cs">Send</button></div>`;msgs();
+ const go=t=>{t=t.trim();if(!t)return;(st.chats[b.name]=st.chats[b.name]||[]).push({f:"me",t:t.replace(/</g,"&lt;")});$("#ci").value="";sh.typing=1;save();msgs();
+  setTimeout(()=>{sh.typing=0;const l=t.toLowerCase();st.chats[b.name].push({f:b.name,t:/\b(hi|hello|hey)\b/.test(l)?`Hey ${me().name}! Great to meet you.`:/time|when|free|meet|book|call/.test(l)?"Let's lock one in. Tap Book meeting and pick a slot!":/thank/.test(l)?"Anytime! Study buddies for life.":pick(LINES[b.skill])});save();if(sh.tab=="chat"&&sh.n==b.name&&!$("#sheet").hidden)msgs()},1000)};
+ $("#cs").onclick=()=>go($("#ci").value);$("#ci").onkeydown=e=>{if(e.key=="Enter")go(e.target.value)};
+ $("#sb").querySelectorAll("[data-t]").forEach(x=>x.onclick=()=>go(x.dataset.t))}
+function drawBook(b){const m=sh.m,y=m.getFullYear(),mo=m.getMonth(),first=(new Date(y,mo,1).getDay()+6)%7,dim=new Date(y,mo+1,0).getDate(),now=new Date(),today=ymd(now),cur=y==now.getFullYear()&&mo==now.getMonth();
+ let cells="<i></i>".repeat(first);for(let d=1;d<=dim;d++){const k=ymd(new Date(y,mo,d));cells+=`<button class="d${k==sh.sel?" on":""}${k==today?" td":""}" data-d="${k}" ${k<today?"disabled":""}>${d}</button>`}
+ let slots="";if(sh.sel)slots=`<p style="font-weight:600;margin:10px 0 6px">${fmt(sh.sel)}: pick a time</p><div class="slots">`+[9,10,11,13,14,15,16,18,19,20].map(h=>{const busy=hash(b.name+sh.sel+h)%4==0||st.meetings.some(x=>x.d==sh.sel&&x.h==h)||(sh.sel==today&&h<=now.getHours());return `<button class="chip s${sh.slot==h?" on":""}" data-h="${h}" ${busy?"disabled":""}>${hh(h)}</button>`}).join("")+"</div>";
+ $("#sb").innerHTML=`<div style="overflow-y:auto"><div class="cal-h"><button class="btn alt" id="pm" ${cur?"disabled":""} aria-label="Previous month">‹</button><b class="disp">${m.toLocaleString("en-GB",{month:"long",year:"numeric"})}</b><button class="btn alt" id="nm" aria-label="Next month">›</button></div>
+ <div class="cal">${["Mo","Tu","We","Th","Fr","Sa","Su"].map(d=>`<small>${d}</small>`).join("")}${cells}</div>${slots}<br><button class="btn" id="bk" style="width:100%" ${sh.slot==null?"disabled":""}>Book study meeting</button></div>`;
+ $("#pm").onclick=()=>{sh.m=new Date(y,mo-1,1);sh.sel=sh.slot=null;drawBook(b)};$("#nm").onclick=()=>{sh.m=new Date(y,mo+1,1);sh.sel=sh.slot=null;drawBook(b)};
+ $("#sb").querySelectorAll("[data-d]").forEach(x=>x.onclick=()=>{sh.sel=x.dataset.d;sh.slot=null;drawBook(b)});
+ $("#sb").querySelectorAll("[data-h]").forEach(x=>x.onclick=()=>{sh.slot=+x.dataset.h;drawBook(b)});
+ $("#bk").onclick=()=>{st.meetings.push({n:b.name,d:sh.sel,h:sh.slot});(st.chats[b.name]=st.chats[b.name]||[]).push({s:1,t:`Meeting booked: ${fmt(sh.sel)} at ${hh(sh.slot)}`},{f:b.name,t:"Booked! I'll bring the snacks."});save();gain(30,"booked");sh.tab="chat";render();drawSheet()}}
+addEventListener("keydown",e=>{if(e.key=="Escape"){$("#sheet").hidden=true;$("#modal").hidden=true}});
+
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x==b));["deck","squad","quests"].forEach(t=>$("#v-"+t).hidden=t!=b.dataset.t);render()});
+
+function start(){if(!me().learn)me().learn=Object.keys(SK).find(k=>k!=me().skill);
+ const t=day();if(st.last!=t){const y=new Date(Date.now()-864e5).toDateString();st.streak=st.last==y?st.streak+1:1;st.last=t;st.swipes=0;st.mt=0;st.day=t}
+ save();$("#onb").hidden=true;$("#game").hidden=false;hud();if(!pool.length)pool=gen();renderDeck(1);render()}
+/* profile, portal, background fx */
+const stat=m=>{const d=Math.round((new Date(m.d+"T"+hh(m.h))-Date.now())/6e4);return d<-60?"ended":d<=10?"live now":d<60?`starts in ${d} min`:d<1440?`starts in ${Math.round(d/60)} h`:`in ${Math.round(d/1440)} d`};
+function openProfile(){const u=me(),el=$("#sheet"),o=(O,v)=>Object.entries(O).map(([k,x])=>`<option value="${k}"${k==v?" selected":""}>${x[0]}</option>`).join("");el.hidden=false;
+ el.innerHTML=`<div class="box sheet" role="dialog" aria-label="Your profile"><div class="sh-h">${mascot(SK[u.skill][2],HB[u.hobby][1],u.level)}<div style="flex:1"><h3 class="nm" style="font-size:20px">${u.name}${u.cert?star:""}</h3><span class="tag" style="background:${HB[u.hobby][1]}">${HB[u.hobby][2]}</span> <small style="color:var(--mute)">${SK[u.skill][1]}</small></div><button class="btn alt" id="x" aria-label="Close">✕</button></div>
+ <form id="pf" style="overflow-y:auto;display:grid;gap:10px;padding:4px"><label class="f">Name<input type="text" id="pn" maxlength="18" value="${u.name}" required></label>
+ <label class="f">Skill I can teach<select id="pk">${o(SK,u.skill)}</select></label><label class="f">Skill I want to learn<select id="pl">${o(SK,u.learn)}</select></label>
+ <div class="row"><label class="f">Level<select id="pv">${LV.map((l,i)=>`<option value="${i}"${i==u.level?" selected":""}>${l}</option>`).join("")}</select></label><label class="f">Confidence<select id="pc">${CF.map((l,i)=>`<option value="${i+1}"${i+1==u.conf?" selected":""}>${l}</option>`).join("")}</select></label></div>
+ <label class="f">Hobby<select id="ph">${o(HB,u.hobby)}</select></label>
+ <label class="up${u.cert?" ok":""}">${u.cert?"Certificate: "+u.cert:"Add a certificate for a gold star (+100 XP)"}<input type="file" id="pcf" accept="image/*,.pdf"></label>
+ <button class="btn" type="submit">Save and refresh buddies</button></form></div>`;
+ $("#x").onclick=()=>el.hidden=true;el.onclick=e=>{if(e.target==el)el.hidden=true};
+ $("#pcf").onchange=e=>{const f=e.target.files[0];if(!f||u.cert)return;u.cert=f.name;gain(100,"certificate");hud();render();openProfile()};
+ $("#pf").onsubmit=e=>{e.preventDefault();if($("#pk").value==$("#pl").value)return toast("Pick a different skill to learn");
+  Object.assign(u,{name:$("#pn").value.trim().replace(/[<>&"]/g,"")||u.name,skill:$("#pk").value,learn:$("#pl").value,level:+$("#pv").value,conf:+$("#pc").value,hobby:$("#ph").value});
+  pool=gen();st.seen=[];done.clear();save();renderDeck();hud();render();el.hidden=true;toast("Profile saved. New buddies dealt")}}
+$("#prof").onclick=openProfile;
+
+function enter(n){const b=st.squad.find(x=>x.name==n);if(!b)return;$("#sheet").hidden=true;const el=$("#portal");el.hidden=false;
+ el.innerHTML=`<div class="enter"><div class="portal big"><i></i><i></i><i></i><u></u></div><h2 class="disp">Entering the portal…</h2><p style="color:var(--mute)">Study room with ${b.name}</p></div>`;
+ setTimeout(()=>{if(!el.hidden)room(b)},2200)}
+function room(b){const u=me(),el=$("#portal");let s=0,pt=1500,run=0,mic=1,cam=1;
+ el.innerHTML=`<div class="rm"><div class="rm-h"><div><h2 class="disp" style="font-size:24px">Study room</h2><small id="tm" style="color:var(--mute)">00:00 · you and ${b.name}</small></div><button class="btn" id="lv">Leave room</button></div>
+ <div class="tiles"><div class="tile" id="t1"><div class="av">${mascot(SK[u.skill][2],HB[u.hobby][1],u.level)}</div><span class="lbl">${u.name} (you)</span></div><div class="tile" id="t2"><div class="av">${mascot(SK[b.skill][2],HB[b.hobby][1],b.level)}</div><span class="lbl">${b.name}${b.cert?star:""}</span></div></div>
+ <div class="side"><div class="pom"><b id="pt">25:00</b><button class="btn alt" id="pp">Start focus round</button></div><textarea id="nt" placeholder="Shared notes: what are you swapping today?">${(st.notes[b.name]||"").replace(/</g,"&lt;")}</textarea></div>
+ <div class="ctl"><button class="btn alt" id="mc">Mic: on</button><button class="btn alt" id="cm">Camera: on</button>${["👏","🔥","💡"].map(r=>`<button class="btn alt" data-r="${r}" aria-label="React ${r}">${r}</button>`).join("")}</div></div>`;
+ const T=x=>String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0");
+ const iv=setInterval(()=>{s++;$("#tm").textContent=T(s)+" · you and "+b.name;if(run&&--pt<=0){run=0;pt=1500;$("#pp").textContent="Start focus round";gain(15,"focus round")}$("#pt").textContent=T(pt)},1000),sp=setInterval(()=>$("#t2").classList.toggle("talk",Math.random()<.5),1700);
+ $("#pp").onclick=()=>{run=!run;$("#pp").textContent=run?"Pause":"Resume focus"};
+ $("#mc").onclick=()=>{mic=!mic;$("#mc").textContent="Mic: "+(mic?"on":"muted")};
+ $("#cm").onclick=()=>{cam=!cam;$("#cm").textContent="Camera: "+(cam?"on":"off");$("#t1").classList.toggle("off",!cam)};
+ el.querySelectorAll("[data-r]").forEach(x=>x.onclick=()=>{const f=document.createElement("span");f.className="fl";f.textContent=x.dataset.r;f.style.left=20+Math.random()*60+"vw";document.body.append(f);setTimeout(()=>f.remove(),1700)});
+ $("#lv").onclick=()=>{clearInterval(iv);clearInterval(sp);st.notes[b.name]=$("#nt").value;st.joined++;const xp=Math.min(60,15+Math.floor(s/30));el.hidden=true;gain(xp,"study room");render()}}
+
+(()=>{const c=$("#bg"),x=c.getContext("2d"),m={x:-999,y:-999},rm=matchMedia("(prefers-reduced-motion:reduce)").matches;let w,h,P=[];
+ const rs=()=>{w=c.width=innerWidth;h=c.height=innerHeight;P=Array.from({length:Math.min(90,w*h/16000|0)},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5,c:Math.random()<.5?"#3d7bff":"#a855f7"}))};
+ addEventListener("resize",rs);addEventListener("pointermove",e=>{m.x=e.clientX;m.y=e.clientY});rs();
+ (function f(){x.clearRect(0,0,w,h);P.forEach((p,i)=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;const dx=p.x-m.x,dy=p.y-m.y,d=Math.hypot(dx,dy);if(d<130&&d>0){p.x+=dx/d*1.6;p.y+=dy/d*1.6}
+  x.globalAlpha=.9;x.fillStyle=p.c;x.fillRect(p.x,p.y,3,3);for(let j=i+1;j<P.length;j++){const q=P[j],e=Math.hypot(p.x-q.x,p.y-q.y);if(e<110){x.globalAlpha=(1-e/110)*.4;x.strokeStyle=p.c;x.beginPath();x.moveTo(p.x,p.y);x.lineTo(q.x,q.y);x.stroke()}}});if(!rm)requestAnimationFrame(f)})()})();
+
+preview();if(me()){cert=me().cert;start()}
+</script>
+</body>
+</html>
