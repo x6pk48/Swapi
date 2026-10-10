@@ -228,6 +228,57 @@ a.btn{display:inline-block;text-align:center;text-decoration:none}
  .card .art{height:34%}.card .spec{font-size:34px}.card .nm{font-size:28px}.want{font-size:15px}.card .info{overflow:auto;gap:9px}
  .sheet{height:min(720px,94vh)}
 }
+
+/* ===== v4: touch + adaptive ===== */
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{overscroll-behavior-y:contain}
+button,.card,.act{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.card{touch-action:none;-webkit-user-drag:none;-webkit-touch-callout:none}
+.card .info{overflow:hidden}
+.card *{-webkit-user-drag:none}
+.card.fly{pointer-events:none}
+.badge.up{left:50%;top:auto;bottom:22px;color:#ffd23f;transform:translateX(-50%) rotate(-3deg);white-space:nowrap}
+.ov.up{background:linear-gradient(0deg,#ffd23f55,transparent 65%)}
+.undo{display:none}
+.bnav{display:none}
+.acts .act{touch-action:manipulation}
+.stack{max-width:min(420px,92vw)}
+@media(min-width:1100px){.wrap{max-width:1080px}.stack{max-width:440px;height:min(640px,calc(100dvh - 300px))}}
+@media(min-width:701px) and (max-width:1000px){.wrap{padding:20px 24px}.stack{max-width:440px}}
+@media(max-height:520px) and (orientation:landscape){
+ .stack{height:calc(100dvh - 200px);min-height:260px;max-width:min(640px,92vw)}
+ .card{flex-direction:row}
+ .card .art{height:100%;width:40%;flex:none}
+ .card .info{padding:12px 16px;gap:5px;justify-content:center}
+ .card .spec{font-size:24px}.card .nm{font-size:20px}.acts{margin-top:10px}
+ .act{width:54px;height:54px}.act.bo{width:44px;height:44px}
+}
+@keyframes su{from{transform:translateY(40px);opacity:0}}
+@media(max-width:700px){
+ body.m-deck .stack{bottom:calc(env(safe-area-inset-bottom,0px) + 160px)}
+ body.m-deck .acts{bottom:calc(env(safe-area-inset-bottom,0px) + 80px);gap:26px}
+ .act{width:68px;height:68px}.act.bo{width:54px;height:54px}
+ .wrap{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}
+ #mnu{display:none!important}
+ .bnav{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:45;background:var(--bg);border-top:1px solid var(--line);padding:4px 6px calc(env(safe-area-inset-bottom,0px) + 4px)}
+ .bnav button{background:none;border:0;display:grid;justify-items:center;gap:1px;padding:6px 0;font-size:11px;font-weight:600;color:var(--mute);cursor:pointer;position:relative;min-height:52px}
+ .bnav .i{font-size:22px;line-height:1}
+ .bnav button[aria-current=page]{color:var(--ink)}
+ .bnav button[aria-current=page] .i{filter:drop-shadow(0 0 8px #5b6cff)}
+ .bnav .bd{position:absolute;top:2px;left:calc(50% + 8px);background:var(--pink);color:#fff;border-radius:99px;font-size:10px;padding:0 5px;min-width:16px;text-align:center}
+ .toast{bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}
+ #sheet{align-items:end;padding:0}
+ #sheet .box.sheet{max-width:none;height:min(92vh,780px);height:min(92dvh,780px);border-radius:26px 26px 0 0;animation:su .3s ease}
+ .list .item{flex-wrap:wrap}.item .col{grid-auto-flow:column;width:100%}.item .col .btn{flex:1;padding:10px 6px;font-size:14px}
+ .item .grow{flex-basis:calc(100% - 90px)}
+ .q{flex-wrap:wrap}.q .col{grid-auto-flow:column;width:100%}.q .col .btn{flex:1}
+ .room{place-items:start center;padding:10px}
+ .rm{gap:8px;grid-template-rows:none}.tiles{gap:8px}.tile{aspect-ratio:3/4}
+ .ctl .btn{padding:10px 12px;font-size:14px}
+ .btn{min-height:44px}
+ .onb{padding:8px 0}.btn,input,select{font-size:16px}
+}
+@media(max-width:380px){.card .spec{font-size:28px}.card .nm{font-size:23px}.want{font-size:13px}.act{width:60px;height:60px}}
 </style>
 </head>
 <body>
@@ -606,6 +657,53 @@ addEventListener("click",e=>{if(!e.target.closest("#mnl"))closeMenu()});
   x.globalAlpha=.9;x.fillStyle=p.c;x.fillRect(p.x,p.y,3,3);for(let j=i+1;j<P.length;j++){const q=P[j],e=Math.hypot(p.x-q.x,p.y-q.y);if(e<110){x.globalAlpha=(1-e/110)*.4;x.strokeStyle=p.c;x.beginPath();x.moveTo(p.x,p.y);x.lineTo(q.x,q.y);x.stroke()}}});if(!rm)requestAnimationFrame(f)})()})();
 
 if(!me())buildWizard();preview();if(me()){cert=me().cert;start()}
+</script>
+<script>
+/* ===== v4: robust touch swiping, swipe-up boost, bottom nav, haptics ===== */
+const buzz=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+function drag(el){
+ let x0=0,y0=0,t0=0,dx=0,dy=0,on=0,mode="";
+ const q=s=>el.querySelector(s),Y=[q(".ov.yes"),q(".badge.yes")],N=[q(".ov.no"),q(".badge.no")];
+ let U=[];
+ if(!boosted()){const o=document.createElement("div");o.className="ov up";const b=document.createElement("span");b.className="badge up";b.textContent="⚡ BOOST";el.prepend(o);el.append(b);U=[o,b]}
+ const setOp=(a,v)=>a.forEach(x=>x.style.opacity=v),clr=()=>{setOp(Y,0);setOp(N,0);setOp(U,0)};
+ const reset=()=>{el.classList.remove("drag");place(el,0,0);el.style.transform="";clr();lift(0)};
+ el.addEventListener("dragstart",e=>e.preventDefault());
+ el.addEventListener("pointerdown",e=>{if(flying||(e.pointerType=="mouse"&&e.button!==0))return;on=1;mode="";x0=e.clientX;y0=e.clientY;t0=performance.now();dx=dy=0;try{el.setPointerCapture(e.pointerId)}catch(_){}el.classList.add("drag")});
+ el.addEventListener("pointermove",e=>{if(!on)return;dx=e.clientX-x0;dy=e.clientY-y0;
+  if(!mode&&Math.hypot(dx,dy)>8)mode=Math.abs(dy)>Math.abs(dx)*1.4&&dy<0&&U.length?"up":"h";
+  if(mode=="up"){el.style.transform=`translate(${dx*.3}px,${dy}px) scale(${1+dy/2400})`;clr();setOp(U,Math.min(1,-dy/110));lift(Math.min(1,-dy/150));return}
+  const ry=dy*.25;el.style.transform=`translate(${dx}px,${ry}px) rotate(${dx/16}deg)`;
+  setOp(U,0);setOp(Y,Math.min(1,Math.max(0,dx/100)));setOp(N,Math.min(1,Math.max(0,-dx/100)));lift(Math.min(1,Math.abs(dx)/150))});
+ const end=cancel=>{if(!on)return;on=0;const dt=performance.now()-t0+1,thr=Math.min(110,el.offsetWidth*.28);
+  if(cancel){reset();return}
+  if(mode=="up"){if(dy<-100||(-dy/dt>.7&&dy<-40)){reset();boost()}else reset();return}
+  const v=Math.abs(dx)/dt;
+  if(Math.abs(dx)>thr||(v>.55&&Math.abs(dx)>36)){buzz(12);fling(dx>0)}else reset()};
+ el.addEventListener("pointerup",()=>end(false));
+ el.addEventListener("pointercancel",()=>end(true));
+ el.addEventListener("lostpointercapture",()=>{if(on)end(false)})
+}
+/* haptic on match */
+const _mm=matchModal;matchModal=b=>{buzz([30,40,70]);_mm(b)};
+/* first-run nudge so people discover swiping */
+const _rd=renderDeck;renderDeck=a=>{_rd(a);const top=$("#stack .card:last-child");
+ if(top&&!st.coached&&!$("#game").hidden){st.coached=1;save();setTimeout(()=>{if(!top.isConnected||top.classList.contains("drag"))return;
+  try{top.animate([{transform:getComputedStyle(top).transform},{transform:"translate(46px,0) rotate(4deg)"},{transform:"translate(-46px,0) rotate(-4deg)"},{transform:getComputedStyle(top).transform}],{duration:1400,easing:"ease-in-out"});toast("Swipe right to swap, left to skip")}catch(e){}},900)}};
+/* bottom nav (mobile) */
+const NAV=document.createElement("nav");NAV.className="bnav";NAV.hidden=true;NAV.setAttribute("aria-label","Main");
+NAV.innerHTML=[["deck","🃏","Swipe"],["squad","👥","Squad"],["quests","🎯","Quests"],["prof","👤","Profile"]].map(([k,i,l])=>`<button type="button" data-n="${k}" aria-label="${l}"><span class="i">${i}</span>${l}${k=="squad"?'<span class="bd" hidden></span>':""}</button>`).join("");
+document.body.append(NAV);
+const syncNav=t=>{NAV.querySelectorAll("[data-n]").forEach(b=>b.toggleAttribute("aria-current",b.dataset.n==t)||0);NAV.querySelectorAll("[data-n]").forEach(b=>{if(b.dataset.n==t)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+ const bd=NAV.querySelector(".bd");bd.hidden=!st.squad.length;bd.textContent=st.squad.length};
+let curTab="deck";
+NAV.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{const k=b.dataset.n;if(k=="prof")openProfile();else go(k)});
+const _go=go;go=t=>{curTab=t;_go(t);syncNav(t);window.scrollTo(0,0)};
+const _rn=render;render=()=>{_rn();syncNav(curTab)};
+const _st=start;start=()=>{_st();NAV.hidden=false;syncNav(curTab)};
+if(!$("#game").hidden){NAV.hidden=false;syncNav(curTab)}
+/* keep layout correct on rotation / mobile browser bars */
+addEventListener("orientationchange",()=>setTimeout(()=>{lift(0)},300));
 </script>
 </body>
 </html>
